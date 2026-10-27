@@ -1,0 +1,177 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+  NODE_VERSION: "20"
+
+jobs:
+  # CT-60: falha com segredo no repositório
+  secrets:
+    name: Segredos (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # CT-02 / CT-60: falha com dependência vulnerável ou código inseguro
+  security:
+    name: Segurança (bandit, pip-audit, npm audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar ferramentas
+        run: pip install bandit pip-audit
+      - name: bandit
+        run: bandit -r backend/app -ll
+      - name: pip-audit
+        run: pip-audit -r backend/requirements.txt
+      - name: npm audit
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high
+
+  backend:
+    name: Back-end (pytest, pytest-bdd)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: hortireg_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d hortireg_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Valores só de teste; nunca os de produção. APIs externas são mockadas.
+      DATABASE_URL: postgresql://test:test@localhost:5432/hortireg_test
+      WEBHOOK_TOKEN: token-de-teste
+      JWT_SECRET: segredo-de-teste
+      EXTERNAL_APIS_MOCKED: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - name: Instalar dependências
+        working-directory: backend
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Testes (push: @smoke; PR: suíte completa)
+        working-directory: backend
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            MARK='-m smoke'
+          fi
+          pytest $MARK \
+            --cov=app --cov-report=xml --cov-report=term-missing \
+            --junitxml=report-pytest.xml
+      - name: Regressão (@regressao) em PR e merge
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        working-directory: backend
+        run: pytest -m regressao
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorios-backend
+          path: |
+            backend/report-pytest.xml
+            backend/coverage.xml
+
+  frontend:
+    name: Painel (Cypress + Cucumber)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: hortireg_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d hortireg_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/hortireg_test
+      WEBHOOK_TOKEN: token-de-teste
+      JWT_SECRET: segredo-de-teste
+      EXTERNAL_APIS_MOCKED: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Instalar back-end
+        working-directory: backend
+        run: pip install -r requirements.txt
+      - name: Migrar e popular banco (seed)
+        working-directory: backend
+        run: |
+          alembic upgrade head
+          python -m app.seed
+      - name: Subir API
+        working-directory: backend
+        run: |
+          nohup uvicorn app.main:app --port 8000 > ../api.log 2>&1 &
+          curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://localhost:8000/health
+      - name: Cypress (push: @smoke; PR: @smoke ou @regressao)
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: frontend
+          build: npm run build
+          start: npm run preview -- --port 5173
+          wait-on: "http://localhost:5173"
+          browser: chrome
+        env:
+          TAGS: ${{ github.event_name == 'push' && '@smoke and not @wip' || '(@smoke or @regressao) and not @wip' }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-evidencias
+          path: |
+            frontend/cypress/videos
+            frontend/cypress/screenshots
+            api.log
+          if-no-files-found: ignore

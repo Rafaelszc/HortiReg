@@ -8,3 +8,4 @@ node_modules
 frontend/dist/
 frontend/cypress/videos/
 frontend/cypress/screenshots/
+preview.log

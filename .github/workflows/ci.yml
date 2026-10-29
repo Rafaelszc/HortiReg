@@ -152,14 +152,22 @@ jobs:
           python -m app.seed
           nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 > "$GITHUB_WORKSPACE/api.log" 2>&1 &
           curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://127.0.0.1:8000/health
+      # O wait-on da cypress-io/github-action aborta com "Socket closed" sem tentar de novo;
+      # o painel sobe aqui e só segue quando responder.
+      - name: Build e preview do painel
+        if: steps.painel.outputs.existe == 'true'
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+          nohup npm run preview -- --port 5173 --strictPort > "$GITHUB_WORKSPACE/preview.log" 2>&1 &
+          curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://127.0.0.1:5173/ > /dev/null
       - name: "Cypress (push: @smoke; PR: @smoke ou @regressao)"
         if: steps.painel.outputs.existe == 'true'
         uses: cypress-io/github-action@v6
         with:
           working-directory: frontend
-          build: npm run build
-          start: npm run preview -- --port 5173 --strictPort
-          wait-on: "http://127.0.0.1:5173"
+          install: false
           browser: chrome
         env:
           TAGS: ${{ github.event_name == 'push' && '@smoke and not @wip' || '(@smoke or @regressao) and not @wip' }}
@@ -171,4 +179,5 @@ jobs:
             frontend/cypress/videos
             frontend/cypress/screenshots
             api.log
+            preview.log
           if-no-files-found: ignore

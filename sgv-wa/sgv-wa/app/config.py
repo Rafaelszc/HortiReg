@@ -21,6 +21,14 @@ class Settings(BaseSettings):
     # Admins (lista separada por vírgula)
     admin_numbers: str = ""
 
+    # Painel: sessão do administrador
+    jwt_secret: str
+    admin_login: str = ""
+    admin_password: str = ""
+    session_minutes: int = 30
+    lockout_attempts: int = 5
+    lockout_minutes: int = 15
+
     @property
     def admin_list(self) -> list[str]:
         return [n.strip() for n in self.admin_numbers.split(",") if n.strip()]

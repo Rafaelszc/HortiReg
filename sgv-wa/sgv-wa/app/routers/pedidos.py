@@ -4,8 +4,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_session
 from app.models import ItemPedido, Pedido, StatusPedido
+from app.routers.auth import get_current_admin
 
-router = APIRouter(prefix="/pedidos", tags=["pedidos"])
+# Pedidos e dados de clientes só para o administrador autenticado (US-02).
+router = APIRouter(prefix="/pedidos", tags=["pedidos"], dependencies=[Depends(get_current_admin)])
 
 
 @router.get("")

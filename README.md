@@ -8,3 +8,24 @@
 | **DevOps**             | Rafael        | Mantém o pipeline de CI/CD (GitHub Actions), o ambiente local (Docker Compose) e o de homologação; executa testes, cobertura, análise estática e auditoria de dependências no pipeline; cuida de segredos (tokens do WhatsApp e das APIs de IA fora do repositório), monitoramento de disponibilidade, deploy e rollback. |
 | **Desenvolvimento**    | Toda a equipe | Implementa as US, escreve testes unitários e de integração, revisa pull requests (mínimo de 1 revisão antes do merge) e corrige os bugs.                                                                                                                                                                                  |
 
+## Execução local
+
+- **API (FastAPI + WhatsApp + Gemini):** ver [`sgv-wa/sgv-wa/README.md`](sgv-wa/sgv-wa/README.md). Depois de `docker compose up -d`, crie o admin do painel com `docker compose exec api python -m app.seed`.
+- **Painel (React):**
+
+```bash
+cd frontend
+npm ci
+npm run dev                     # http://127.0.0.1:5173 (proxy para a API em :8000)
+```
+
+- **Testes da API** (Postgres de teste; Gemini e Evolution são mockados):
+
+```bash
+cd sgv-wa/sgv-wa
+pip install -r requirements-dev.txt
+pytest                          # -m smoke | -m regressao
+```
+
+- **E2E do painel:** com API e painel rodando, `cd frontend && ADMIN_LOGIN=... ADMIN_PASSWORD=... TAGS='@smoke' npx cypress run`.
+

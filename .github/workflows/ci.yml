@@ -15,7 +15,7 @@ permissions:
 env:
   PYTHON_VERSION: "3.12"
   NODE_VERSION: "22"
-  API_DIR: sgv-wa/sgv-wa
+  API_DIR: backend
   # Valores só de teste; nunca os de produção. Gemini e Evolution API são mockados nos testes.
   # JWT_SECRET é gerado em cada job (passo "Gerar segredo de teste").
   DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/hortireg_test
@@ -45,7 +45,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: sgv-wa/sgv-wa/requirements*.txt
+          cache-dependency-path: backend/requirements*.txt
       - name: Instalar ferramentas
         run: pip install bandit pip-audit
       - name: bandit
@@ -82,14 +82,14 @@ jobs:
           --health-retries 10
     defaults:
       run:
-        working-directory: sgv-wa/sgv-wa
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: sgv-wa/sgv-wa/requirements*.txt
+          cache-dependency-path: backend/requirements*.txt
       - name: Gerar segredo de teste
         run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
       - name: Instalar dependências
@@ -103,8 +103,8 @@ jobs:
         with:
           name: relatorios-api
           path: |
-            sgv-wa/sgv-wa/report-pytest.xml
-            sgv-wa/sgv-wa/coverage.xml
+            backend/report-pytest.xml
+            backend/coverage.xml
 
   frontend:
     name: Painel (Cypress + Cucumber)
@@ -134,7 +134,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: sgv-wa/sgv-wa/requirements*.txt
+          cache-dependency-path: backend/requirements*.txt
       - uses: actions/setup-node@v4
         if: steps.painel.outputs.existe == 'true'
         with:
@@ -146,7 +146,7 @@ jobs:
         run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
       - name: Criar tabelas, admin e subir API
         if: steps.painel.outputs.existe == 'true'
-        working-directory: sgv-wa/sgv-wa
+        working-directory: backend
         run: |
           pip install -r requirements.txt
           python -m app.seed

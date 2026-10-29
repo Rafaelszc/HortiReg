@@ -17,8 +17,8 @@ env:
   NODE_VERSION: "22"
   API_DIR: sgv-wa/sgv-wa
   # Valores só de teste; nunca os de produção. Gemini e Evolution API são mockados nos testes.
+  # JWT_SECRET é gerado em cada job (passo "Gerar segredo de teste").
   DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/hortireg_test
-  JWT_SECRET: segredo-de-teste-com-32-bytes-ou-mais-ok
   ADMIN_LOGIN: admin
   ADMIN_PASSWORD: senha-de-teste-123
 
@@ -90,6 +90,8 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
           cache-dependency-path: sgv-wa/sgv-wa/requirements*.txt
+      - name: Gerar segredo de teste
+        run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
       - name: Instalar dependências
         run: pip install -r requirements-dev.txt
       - name: Lint (ruff)
@@ -139,6 +141,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - name: Gerar segredo de teste
+        if: steps.painel.outputs.existe == 'true'
+        run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
       - name: Criar tabelas, admin e subir API
         if: steps.painel.outputs.existe == 'true'
         working-directory: sgv-wa/sgv-wa

@@ -1,6 +1,7 @@
 """Fixtures: banco de teste real (Postgres) e Gemini/WhatsApp falsos."""
 
 import asyncio
+import itertools
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -127,12 +128,15 @@ def llm_fake(monkeypatch):
     return estado
 
 
-def mensagem(texto: str, telefone: str = TELEFONE) -> dict:
-    """Evento messages.upsert da Evolution API com uma mensagem de texto."""
+_ids = itertools.count(1)
+
+
+def mensagem(texto: str, telefone: str = TELEFONE, msg_id: str | None = None) -> dict:
+    """Evento messages.upsert da Evolution API com uma mensagem de texto (id novo a cada chamada)."""
     return {
         "event": "messages.upsert",
         "data": {
-            "key": {"remoteJid": f"{telefone}@s.whatsapp.net", "fromMe": False, "id": "ABC"},
+            "key": {"remoteJid": f"{telefone}@s.whatsapp.net", "fromMe": False, "id": msg_id or f"MSG{next(_ids)}"},
             "pushName": "Maria",
             "message": {"conversation": texto},
         },

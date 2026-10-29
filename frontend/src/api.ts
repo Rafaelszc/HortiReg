@@ -7,27 +7,6 @@ export class ApiError extends Error {
   }
 }
 
-export type Status = "AGUARDANDO_CONFIRMACAO" | "CONFIRMADO" | "CANCELADO" | "ENTREGUE";
-
-export type Item = {
-  nome: string;
-  quantidade: number;
-  unidade: string;
-  /** null quando o item não casou com o catálogo (preço a confirmar). */
-  preco_unitario: number | null;
-  subtotal: number | null;
-};
-
-export type Pedido = {
-  id: number;
-  status: Status;
-  criado_em: string;
-  observacao: string | null;
-  cliente: { telefone: string; nome: string | null };
-  total_estimado: number;
-  itens: Item[];
-};
-
 async function pedir<T>(url: string, init: RequestInit = {}, token?: string): Promise<T> {
   const headers = new Headers(init.headers);
   if (token) headers.set("Authorization", `Bearer ${token}`);
@@ -58,12 +37,6 @@ export function me(token: string) {
   return pedir<{ login: string }>("/auth/me", {}, token);
 }
 
-export function listarPedidos(token: string, dia: string, status?: Status) {
-  const q = new URLSearchParams({ dia });
-  if (status) q.set("status", status);
-  return pedir<Pedido[]>(`/pedidos?${q}`, {}, token);
-}
-
 /** Momento (ms) em que o JWT expira, ou null se ilegível. */
 export function expiracao(token: string): number | null {
   try {
@@ -72,4 +45,18 @@ export function expiracao(token: string): number | null {
   } catch {
     return null;
   }
+}
+
+export type Produto = { id: number; nome: string; unidade: string; preco: number; ativo: boolean };
+
+export function listarProdutos(token: string) {
+  return pedir<Produto[]>("/produtos", {}, token);
+}
+
+export function criarProduto(token: string, dados: { nome: string; unidade: string; preco: number }) {
+  return pedir<Produto>("/produtos", { method: "POST", body: JSON.stringify(dados) }, token);
+}
+
+export function atualizarProduto(token: string, id: number, dados: { preco?: number; ativo?: boolean }) {
+  return pedir<Produto>(`/produtos/${id}`, { method: "PATCH", body: JSON.stringify(dados) }, token);
 }

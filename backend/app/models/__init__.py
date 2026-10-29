@@ -77,3 +77,12 @@ class ItemPedido(Base):
     preco_unitario: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
 
     pedido: Mapped[Pedido] = relationship(back_populates="itens")
+
+
+class MensagemProcessada(Base):
+    """Ids de mensagem do WhatsApp já tratados; a Evolution pode reenviar o mesmo evento."""
+
+    __tablename__ = "mensagens_processadas"
+
+    id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

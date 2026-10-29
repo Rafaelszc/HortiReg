@@ -39,6 +39,13 @@ def _envia(ctx, texto):
     assert r.status_code == 200
 
 
+@when(parsers.parse('o cliente envia "{texto}" e a Evolution reenvia o mesmo evento'))
+def _envia_duas_vezes(ctx, texto):
+    evento = mensagem(texto)
+    for _ in range(2):
+        assert ctx["client"].post("/webhook/whatsapp", json=evento).status_code == 200
+
+
 def _pedidos():
     return rodar(lambda s: s.scalars(select(Pedido).order_by(Pedido.id)))
 
@@ -79,3 +86,13 @@ def _confirmado(ctx):
     (pedido,) = list(_pedidos())
     assert pedido.status == StatusPedido.CONFIRMADO
     assert "confirmado" in ctx["enviadas"][-1][1]
+
+
+@then("apenas um pedido é criado")
+def _um_pedido(ctx):
+    assert len(list(_pedidos())) == 1
+
+
+@then("o cliente recebe apenas um resumo")
+def _um_resumo(ctx):
+    assert len(ctx["enviadas"]) == 1

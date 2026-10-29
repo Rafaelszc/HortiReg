@@ -1,0 +1,4 @@
+[run]
+# O SQLAlchemy async roda em greenlets e o TestClient em outra thread; sem isto o coverage
+# (core ctrace, Python < 3.14) perde essas linhas e reporta cobertura menor do que a real.
+concurrency = greenlet,thread

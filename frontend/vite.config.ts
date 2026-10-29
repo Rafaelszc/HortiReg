@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 const proxy = {
   "/auth": "http://127.0.0.1:8000",
   "/pedidos": "http://127.0.0.1:8000",
+  "/produtos": "http://127.0.0.1:8000",
 };
 
 export default defineConfig({

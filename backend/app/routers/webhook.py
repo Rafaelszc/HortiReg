@@ -4,10 +4,11 @@ import logging
 
 from fastapi import APIRouter, BackgroundTasks
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import SessionLocal
-from app.models import Cliente, ItemPedido, Pedido, StatusPedido
+from app.models import Cliente, ItemPedido, MensagemProcessada, Pedido, StatusPedido
 from app.services import catalogo, llm, whatsapp
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
@@ -46,6 +47,10 @@ async def processar_mensagem(data: dict) -> None:
         eh_audio = "audioMessage" in msg
 
         async with SessionLocal() as session:
+            if await _repetida(session, key.get("id")):
+                log.info("Mensagem %s já processada; ignorada", key.get("id"))
+                return
+
             cliente = await _obter_cliente(session, telefone, data.get("pushName"))
 
             # Etapa 2: o cliente está respondendo SIM/NÃO a um pedido pendente
@@ -93,6 +98,19 @@ def _resumo(itens: list[ItemPedido]) -> str:
     if any(i.preco_unitario is not None for i in itens):
         linhas.append(f"\nValor estimado: {catalogo.brl(catalogo.total_estimado(itens))}")
     return "\n".join(linhas)
+
+
+async def _repetida(session: AsyncSession, mensagem_id: str | None) -> bool:
+    """Registra o id da mensagem; True se ele já existia (reenvio do webhook)."""
+    if not mensagem_id:
+        return False
+    session.add(MensagemProcessada(id=mensagem_id))
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        return True
+    return False
 
 
 async def _obter_cliente(session: AsyncSession, telefone: str, nome: str | None) -> Cliente:

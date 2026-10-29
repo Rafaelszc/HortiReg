@@ -136,7 +136,7 @@ python -m venv .venv
 pip install -r requirements.txt
 docker compose up -d postgres redis evolution-api
 ```
-Defina `DATABASE_URL=postgresql+asyncpg://sgv:SUASENHA@localhost:5432/sgv` e `EVOLUTION_URL=http://localhost:8080` no `.env`, e como o webhook global aponta para `http://api:8000`, troque para `http://host.docker.internal:8000/webhook/whatsapp` no compose. Depois:
+Defina `DATABASE_URL=postgresql+asyncpg://sgv:SUASENHA@localhost:5433/sgv` e `EVOLUTION_URL=http://localhost:8080` no `.env`, e como o webhook global aponta para `http://api:8000`, troque para `http://host.docker.internal:8000/webhook/whatsapp` no compose. Depois:
 ```bash
 uvicorn app.main:app --reload
 pytest

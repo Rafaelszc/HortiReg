@@ -14,7 +14,13 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.12"
-  NODE_VERSION: "20"
+  NODE_VERSION: "22"
+  API_DIR: sgv-wa/sgv-wa
+  # Valores só de teste; nunca os de produção. Gemini e Evolution API são mockados nos testes.
+  # JWT_SECRET é gerado em cada job (passo "Gerar segredo de teste").
+  DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/hortireg_test
+  ADMIN_LOGIN: admin
+  ADMIN_PASSWORD: senha-de-teste-123
 
 jobs:
   # CT-60: falha com segredo no repositório
@@ -39,24 +45,26 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: backend/requirements*.txt
+          cache-dependency-path: sgv-wa/sgv-wa/requirements*.txt
+      - name: Instalar ferramentas
+        run: pip install bandit pip-audit
+      - name: bandit
+        run: bandit -r $API_DIR/app -ll
+      - name: pip-audit
+        run: pip-audit -r $API_DIR/requirements.txt
       - uses: actions/setup-node@v4
+        if: hashFiles('frontend/package-lock.json') != ''
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Instalar ferramentas
-        run: pip install bandit pip-audit
-      - name: bandit
-        run: bandit -r backend/app -ll
-      - name: pip-audit
-        run: pip-audit -r backend/requirements.txt
       - name: npm audit
+        if: hashFiles('frontend/package-lock.json') != ''
         working-directory: frontend
         run: npm audit --omit=dev --audit-level=high
 
   backend:
-    name: Back-end (pytest, pytest-bdd)
+    name: API (ruff, pytest, pytest-bdd)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -72,46 +80,36 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-    env:
-      # Valores só de teste; nunca os de produção. APIs externas são mockadas.
-      DATABASE_URL: postgresql://test:test@localhost:5432/hortireg_test
-      WEBHOOK_TOKEN: token-de-teste
-      JWT_SECRET: segredo-de-teste
-      EXTERNAL_APIS_MOCKED: "true"
+    defaults:
+      run:
+        working-directory: sgv-wa/sgv-wa
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: backend/requirements*.txt
+          cache-dependency-path: sgv-wa/sgv-wa/requirements*.txt
+      - name: Gerar segredo de teste
+        run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
       - name: Instalar dependências
-        working-directory: backend
-        run: pip install -r requirements.txt -r requirements-dev.txt
-      - name: Testes (push: @smoke; PR: suíte completa)
-        working-directory: backend
-        run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            MARK='-m smoke'
-          fi
-          pytest $MARK \
-            --cov=app --cov-report=xml --cov-report=term-missing \
-            --junitxml=report-pytest.xml
-      - name: Regressão (@regressao) em PR e merge
-        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-        working-directory: backend
-        run: pytest -m regressao
+        run: pip install -r requirements-dev.txt
+      - name: Lint (ruff)
+        run: ruff check .
+      - name: Testes com cobertura
+        run: pytest --cov=app --cov-report=xml --cov-report=term-missing --junitxml=report-pytest.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: relatorios-backend
+          name: relatorios-api
           path: |
-            backend/report-pytest.xml
-            backend/coverage.xml
+            sgv-wa/sgv-wa/report-pytest.xml
+            sgv-wa/sgv-wa/coverage.xml
 
   frontend:
     name: Painel (Cypress + Cucumber)
     runs-on: ubuntu-latest
+    needs: backend
     services:
       postgres:
         image: postgres:16
@@ -126,43 +124,50 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-    env:
-      DATABASE_URL: postgresql://test:test@localhost:5432/hortireg_test
-      WEBHOOK_TOKEN: token-de-teste
-      JWT_SECRET: segredo-de-teste
-      EXTERNAL_APIS_MOCKED: "true"
     steps:
       - uses: actions/checkout@v4
+      - name: Verificar se o painel existe
+        id: painel
+        run: echo "existe=${{ hashFiles('frontend/package-lock.json') != '' }}" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@v5
+        if: steps.painel.outputs.existe == 'true'
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-          cache-dependency-path: backend/requirements*.txt
+          cache-dependency-path: sgv-wa/sgv-wa/requirements*.txt
       - uses: actions/setup-node@v4
+        if: steps.painel.outputs.existe == 'true'
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Instalar back-end
-        working-directory: backend
-        run: pip install -r requirements.txt
-      - name: Migrar e popular banco (seed)
-        working-directory: backend
+      - name: Gerar segredo de teste
+        if: steps.painel.outputs.existe == 'true'
+        run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      - name: Criar tabelas, admin e subir API
+        if: steps.painel.outputs.existe == 'true'
+        working-directory: sgv-wa/sgv-wa
         run: |
-          alembic upgrade head
+          pip install -r requirements.txt
           python -m app.seed
-      - name: Subir API
-        working-directory: backend
+          nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 > "$GITHUB_WORKSPACE/api.log" 2>&1 &
+          curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://127.0.0.1:8000/health
+      # O wait-on da cypress-io/github-action aborta com "Socket closed" sem tentar de novo;
+      # o painel sobe aqui e só segue quando responder.
+      - name: Build e preview do painel
+        if: steps.painel.outputs.existe == 'true'
+        working-directory: frontend
         run: |
-          nohup uvicorn app.main:app --port 8000 > ../api.log 2>&1 &
-          curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://localhost:8000/health
-      - name: Cypress (push: @smoke; PR: @smoke ou @regressao)
+          npm ci
+          npm run build
+          nohup npm run preview -- --port 5173 --strictPort > "$GITHUB_WORKSPACE/preview.log" 2>&1 &
+          curl --retry 15 --retry-connrefused --retry-delay 2 -sf http://127.0.0.1:5173/ > /dev/null
+      - name: "Cypress (push: @smoke; PR: @smoke ou @regressao)"
+        if: steps.painel.outputs.existe == 'true'
         uses: cypress-io/github-action@v6
         with:
           working-directory: frontend
-          build: npm run build
-          start: npm run preview -- --port 5173
-          wait-on: "http://localhost:5173"
+          install: false
           browser: chrome
         env:
           TAGS: ${{ github.event_name == 'push' && '@smoke and not @wip' || '(@smoke or @regressao) and not @wip' }}
@@ -174,4 +179,5 @@ jobs:
             frontend/cypress/videos
             frontend/cypress/screenshots
             api.log
+            preview.log
           if-no-files-found: ignore

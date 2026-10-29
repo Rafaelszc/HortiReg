@@ -1,4 +1,5 @@
 import { Marca } from "./Marca";
+import Produtos from "./Produtos";
 
 type Props = {
   token: string;
@@ -7,7 +8,7 @@ type Props = {
   onExpirada: () => void;
 };
 
-export default function Painel({ login, onSair }: Props) {
+export default function Painel({ token, login, onSair, onExpirada }: Props) {
   return (
     <div className="painel">
       <header className="topo">
@@ -27,10 +28,7 @@ export default function Painel({ login, onSair }: Props) {
         </div>
       </header>
       <main className="conteudo">
-        <div className="estado">
-          <h2>Bem-vindo ao painel</h2>
-          <p>Os pedidos do dia chegam aqui em breve.</p>
-        </div>
+        <Produtos token={token} onExpirada={onExpirada} />
       </main>
     </div>
   );

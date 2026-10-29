@@ -1,0 +1,8 @@
+import enum
+
+
+class StatusPedido(str, enum.Enum):
+    AGUARDANDO_CONFIRMACAO = "AGUARDANDO_CONFIRMACAO"
+    CONFIRMADO = "CONFIRMADO"
+    CANCELADO = "CANCELADO"
+    ENTREGUE = "ENTREGUE"

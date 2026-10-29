@@ -46,3 +46,17 @@ export function expiracao(token: string): number | null {
     return null;
   }
 }
+
+export type Produto = { id: number; nome: string; unidade: string; preco: number; ativo: boolean };
+
+export function listarProdutos(token: string) {
+  return pedir<Produto[]>("/produtos", {}, token);
+}
+
+export function criarProduto(token: string, dados: { nome: string; unidade: string; preco: number }) {
+  return pedir<Produto>("/produtos", { method: "POST", body: JSON.stringify(dados) }, token);
+}
+
+export function atualizarProduto(token: string, id: number, dados: { preco?: number; ativo?: boolean }) {
+  return pedir<Produto>(`/produtos/${id}`, { method: "PATCH", body: JSON.stringify(dados) }, token);
+}

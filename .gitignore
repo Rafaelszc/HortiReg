@@ -1,0 +1,11 @@
+.env
+.ruff_cache/
+.coverage
+coverage.xml
+report-pytest.xml
+api.log
+node_modules
+frontend/dist/
+frontend/cypress/videos/
+frontend/cypress/screenshots/
+preview.log

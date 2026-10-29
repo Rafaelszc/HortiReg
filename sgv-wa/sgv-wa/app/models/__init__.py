@@ -15,6 +15,16 @@ class StatusPedido(str, enum.Enum):
     ENTREGUE = "ENTREGUE"
 
 
+class Admin(Base):
+    __tablename__ = "admins"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    login: Mapped[str] = mapped_column(String(80), unique=True)
+    senha_hash: Mapped[str] = mapped_column(String(255))
+    tentativas_falhas: Mapped[int] = mapped_column(default=0)
+    bloqueado_ate: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class Cliente(Base):
     __tablename__ = "clientes"
 
@@ -63,5 +73,7 @@ class ItemPedido(Base):
     nome: Mapped[str] = mapped_column(String(120))  # como o cliente falou / normalizado pela LLM
     quantidade: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     unidade: Mapped[str] = mapped_column(String(20), default="un")
+    # Preço do catálogo no momento do pedido; None quando o item não casou com um produto.
+    preco_unitario: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
 
     pedido: Mapped[Pedido] = relationship(back_populates="itens")

@@ -8,13 +8,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import SessionLocal
 from app.models import Cliente, ItemPedido, Pedido, StatusPedido
-from app.services import llm, whatsapp
+from app.services import catalogo, llm, whatsapp
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
 log = logging.getLogger("sgv.webhook")
 
 SIM = {"sim", "s", "confirmo", "confirmar", "ok", "isso"}
 NAO = {"nao", "não", "n", "cancelar", "cancela"}
+MSG_SEM_ITENS = (
+    "Não consegui entender os itens do pedido. Pode repetir? 🙏\n"
+    'Exemplo: "quero 2 kg de tomate e 1 caixa de banana".'
+)
 
 
 @router.post("/whatsapp")
@@ -59,30 +63,36 @@ async def processar_mensagem(data: dict) -> None:
                 return
 
             if not pedido_extraido.itens:
-                await whatsapp.enviar_texto(
-                    telefone, "Não consegui entender os itens do pedido. Pode repetir? 🙏"
-                )
+                await whatsapp.enviar_texto(telefone, MSG_SEM_ITENS)
                 return
 
             pedido = Pedido(
                 cliente_id=cliente.id,
                 observacao=pedido_extraido.observacao,
-                itens=[
-                    ItemPedido(nome=i.nome, quantidade=i.quantidade, unidade=i.unidade)
-                    for i in pedido_extraido.itens
-                ],
+                itens=await catalogo.montar_itens(session, pedido_extraido.itens),
             )
             session.add(pedido)
             await session.commit()
 
-            linhas = "\n".join(f"• {i.quantidade:g} {i.unidade} de {i.nome}" for i in pedido.itens)
             await whatsapp.enviar_texto(
                 telefone,
-                f"Entendi seu pedido #{pedido.id}:\n{linhas}\n\n"
+                f"Entendi seu pedido #{pedido.id}:\n{_resumo(pedido.itens)}\n\n"
                 "Responda *SIM* para confirmar ou *NÃO* para cancelar.",
             )
     except Exception:
         log.exception("Erro ao processar mensagem do WhatsApp")
+
+
+def _resumo(itens: list[ItemPedido]) -> str:
+    """Itens com preço do catálogo e valor estimado; itens fora do catálogo ficam a confirmar."""
+    linhas = []
+    for i in itens:
+        sub = catalogo.subtotal(i)
+        preco = f" — {catalogo.brl(sub)}" if sub is not None else " — preço a confirmar"
+        linhas.append(f"• {float(i.quantidade):g} {i.unidade} de {i.nome}{preco}")
+    if any(i.preco_unitario is not None for i in itens):
+        linhas.append(f"\nValor estimado: {catalogo.brl(catalogo.total_estimado(itens))}")
+    return "\n".join(linhas)
 
 
 async def _obter_cliente(session: AsyncSession, telefone: str, nome: str | None) -> Cliente:

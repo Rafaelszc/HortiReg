@@ -10,8 +10,16 @@
 
 ## Execução local
 
-- **API (FastAPI + WhatsApp + Gemini):** ver [`sgv-wa/sgv-wa/README.md`](sgv-wa/sgv-wa/README.md). Depois de `docker compose up -d`, crie o admin do painel com `docker compose exec api python -m app.seed`.
-- **Painel (React):**
+Módulos: `backend/` (API FastAPI + WhatsApp + Gemini) e `frontend/` (painel React). O `docker-compose.yml` da raiz builda e sobe tudo:
+
+```bash
+cp .env.example .env            # preencha as chaves
+docker compose up -d --build    # API :8000, painel :8081, Evolution :8080
+docker compose exec api python -m app.seed   # cria o admin do painel
+```
+
+- **API:** detalhes em [`backend/README.md`](backend/README.md).
+- **Painel em modo dev (React):**
 
 ```bash
 cd frontend
@@ -22,7 +30,7 @@ npm run dev                     # http://127.0.0.1:5173 (proxy para a API em :80
 - **Testes da API** (Postgres de teste; Gemini e Evolution são mockados):
 
 ```bash
-cd sgv-wa/sgv-wa
+cd backend                      # usa backend/.env (copie o da raiz)
 pip install -r requirements-dev.txt
 pytest                          # -m smoke | -m regressao
 ```

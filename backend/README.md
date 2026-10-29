@@ -20,31 +20,33 @@ Automação de pedidos de hortifrúti: o cliente manda áudio/texto no WhatsApp,
  Redis (container)  ← cache da Evolution API
 ```
 
-Tudo roda com **um comando** (`docker compose up`). Você não instala Postgres, Redis nem a Evolution na máquina.
+Tudo roda com **um comando** (`docker compose up`, na raiz do repositório). Você não instala Postgres, Redis nem a Evolution na máquina. Os comandos `docker compose` deste guia rodam na raiz; os de Python (`pip`, `pytest`, `uvicorn`), em `backend/`.
 
 ## 2. Estrutura de pastas
 
 ```
-sgv-wa/
-├── docker-compose.yml      # sobe Postgres, Redis, Evolution API e a API
-├── Dockerfile              # imagem da sua API (Python 3.12)
-├── requirements.txt        # dependências Python
+HortiReg/
+├── docker-compose.yml      # sobe Postgres, Redis, Evolution API, a API e o painel (:8081)
 ├── .env.example            # modelo das variáveis (copie para .env)
-├── docker/
-│   └── init-db.sh          # cria o banco "evolution" na 1ª execução
-├── app/
-│   ├── main.py             # cria o FastAPI, registra as rotas
-│   ├── config.py           # lê variáveis de ambiente
-│   ├── database.py         # conexão async com o Postgres
-│   ├── models/             # tabelas (Cliente, Produto, Pedido, ItemPedido)
-│   ├── schemas/pedido.py   # formato JSON que a LLM deve devolver
-│   ├── routers/
-│   │   ├── webhook.py      # recebe mensagens do WhatsApp (fluxo de confirmação)
-│   │   └── pedidos.py      # lista pedidos e relatório de separação
-│   └── services/
-│       ├── llm.py          # chamada ao Gemini (texto/áudio → itens)
-│       └── whatsapp.py     # envia mensagens / baixa áudio na Evolution API
-└── tests/test_health.py
+├── frontend/               # painel React
+└── backend/
+    ├── Dockerfile              # imagem da sua API (Python 3.12)
+    ├── requirements.txt        # dependências Python
+    ├── docker/
+    │   └── init-db.sh          # cria o banco "evolution" na 1ª execução
+    ├── app/
+    │   ├── main.py             # cria o FastAPI, registra as rotas
+    │   ├── config.py           # lê variáveis de ambiente
+    │   ├── database.py         # conexão async com o Postgres
+    │   ├── models/             # tabelas (Cliente, Produto, Pedido, ItemPedido)
+    │   ├── schemas/pedido.py   # formato JSON que a LLM deve devolver
+    │   ├── routers/
+    │   │   ├── webhook.py      # recebe mensagens do WhatsApp (fluxo de confirmação)
+    │   │   └── pedidos.py      # lista pedidos e relatório de separação
+    │   └── services/
+    │       ├── llm.py          # chamada ao Gemini (texto/áudio → itens)
+    │       └── whatsapp.py     # envia mensagens / baixa áudio na Evolution API
+    └── tests/test_health.py
 ```
 
 Regra de ouro: **routers** só recebem/respondem requisições; a lógica "de verdade" (LLM, WhatsApp, rotas) fica em **services**.
@@ -68,6 +70,7 @@ docker compose version
 ## 4. Passo a passo
 
 ### 4.1 Configurar variáveis
+Na raiz do repositório:
 ```bash
 cp .env.example .env        # Windows PowerShell: copy .env.example .env
 ```
@@ -83,7 +86,7 @@ docker compose up -d --build
 docker compose ps            # todos devem estar "running"/"healthy"
 docker compose logs -f api   # logs da sua API (Ctrl+C para sair)
 ```
-Teste: abra http://localhost:8000/docs (documentação interativa) e http://localhost:8000/health.
+Teste: abra http://localhost:8000/docs (documentação interativa) e http://localhost:8000/health. O painel fica em http://localhost:8081 (crie o admin com `docker compose exec api python -m app.seed`).
 
 > Na primeira vez o download das imagens demora alguns minutos.
 
@@ -122,10 +125,11 @@ docker compose logs -f api        # logs
 docker compose exec postgres psql -U sgv -d sgv   # abre o banco (\dt lista tabelas, \q sai)
 docker compose up -d --build api  # depois de mudar requirements.txt
 ```
-Editou código em `app/`? O `--reload` já recarrega sozinho (volume montado).
+Editou código em `backend/app/`? O `--reload` já recarrega sozinho (volume montado).
 
 ## 6. Rodar sem Docker (opcional, para debugar no VS Code)
 
+Em `backend/` (copie o `.env` da raiz para `backend/.env`):
 ```bash
 python -m venv .venv
 .venv\Scripts\activate            # Linux/Mac: source .venv/bin/activate

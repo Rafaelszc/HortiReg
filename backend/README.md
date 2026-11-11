@@ -44,9 +44,10 @@ HortiReg/
     │   │   ├── webhook.py      # recebe mensagens do WhatsApp (fluxo de confirmação)
     │   │   └── pedidos.py      # lista pedidos e relatório de separação
     │   └── services/
+    │       ├── audio.py        # valida duração e formato do áudio do cliente
     │       ├── llm.py          # chamada ao Gemini (texto/áudio → itens)
     │       └── whatsapp.py     # envia mensagens / baixa áudio na Evolution API
-    └── tests/test_health.py
+    └── tests/                  # pytest + pytest-bdd (features/*.feature, test_*.py, conftest.py)
 ```
 
 Regra de ouro: **routers** só recebem/respondem requisições; a lógica "de verdade" (LLM, WhatsApp, rotas) fica em **services**.
@@ -114,6 +115,17 @@ O webhook já está configurado globalmente no `docker-compose.yml` (`WEBHOOK_GL
 
 Se algo falhar: `docker compose logs -f api evolution-api`.
 
+#### Pedido por áudio (US-06)
+
+O cliente pode mandar o pedido em nota de voz; o áudio passa pela mesma extração e pelo mesmo resumo do texto. Nenhum pedido é criado, e o cliente recebe orientação para reenviar em áudio mais curto ou em texto, quando:
+
+| Situação | Regra |
+|---|---|
+| Áudio longo demais | Mais de `AUDIO_MAX_SEGUNDOS` (padrão 60 s) ou arquivo acima de `AUDIO_MAX_BYTES` (padrão 5 MB). O áudio nem é baixado quando a duração já vem acima do limite. |
+| Formato não suportado | Aceitos: `audio/ogg` (nota de voz do WhatsApp, inclusive `codecs=opus`), `audio/mpeg` (mp3), `audio/aac` e `audio/wav`. |
+| Ininteligível | A IA não extraiu nenhum item. |
+| Falha técnica | Erro ao baixar o áudio, erro da IA ou espera maior que `AUDIO_TIMEOUT_SEGUNDOS` (padrão 45 s). O erro vai para o log, sem o conteúdo do áudio. |
+
 ## 5. Comandos do dia a dia
 
 ```bash
@@ -139,14 +151,26 @@ docker compose up -d postgres redis evolution-api
 Defina `DATABASE_URL=postgresql+asyncpg://sgv:SUASENHA@localhost:5433/sgv` e `EVOLUTION_URL=http://localhost:8080` no `.env`, e como o webhook global aponta para `http://api:8000`, troque para `http://host.docker.internal:8000/webhook/whatsapp` no compose. Depois:
 ```bash
 uvicorn app.main:app --reload
-pytest
 ```
+
+#### Rodar os testes (`pytest`)
+
+⚠️ **Os testes apagam e recriam todas as tabelas do banco de `DATABASE_URL`.** Nunca aponte para o banco de desenvolvimento (`sgv`). Crie um banco só para os testes e informe-o ao rodar:
+
+```bash
+docker compose exec postgres psql -U sgv -d postgres -c "CREATE DATABASE hortireg_test"
+# bash:
+DATABASE_URL=postgresql+asyncpg://sgv:SUASENHA@localhost:5433/hortireg_test \
+JWT_SECRET=um-segredo-de-teste-com-32-caracteres-ou-mais \
+ADMIN_LOGIN=admin ADMIN_PASSWORD=senha-de-teste-123 pytest
+```
+No PowerShell, defina as mesmas variáveis com `$env:NOME = "valor"` antes de `pytest`. As variáveis do ambiente têm prioridade sobre o `backend/.env`.
 
 ## 7. Avisos importantes
 
 - **Evolution API/Baileys não é oficial**: o WhatsApp pode banir o número. Use chip secundário nos testes; para produção avalie a **WhatsApp Cloud API** oficial da Meta.
 - Nunca suba o `.env` para o Git (já está no `.gitignore`).
-- Verifique na documentação da Evolution (https://doc.evolution-api.com) se os nomes de variáveis/endpoints mudaram. A imagem foi fixada em `atendai/evolution-api:v2.1.1`; o fluxo de download de áudio (`/chat/getBase64FromMediaMessage`) e o formato do webhook podem variar entre versões.
+- Verifique na documentação da Evolution (https://doc.evolution-api.com) se os nomes de variáveis/endpoints mudaram. O `docker-compose.yml` usa a imagem `evoapicloud/evolution-api` (sem versão fixada: confira a que está rodando com `docker compose images`); o fluxo de download de áudio (`/chat/getBase64FromMediaMessage`) e o formato do webhook podem variar entre versões.
 - As tabelas são criadas automaticamente na inicialização (`create_all`). Para evoluir o banco com segurança, adote **Alembic** (migrações).
 - O código ainda **não** usa `ADMIN_NUMBERS` (modo admin) nem calcula rotas: são os próximos módulos.
 

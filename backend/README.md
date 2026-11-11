@@ -1,6 +1,6 @@
 # SGV-WA – Sistema de Gestão de Vendas via WhatsApp
 
-Automação de pedidos de hortifrúti: o cliente manda áudio/texto no WhatsApp, uma LLM (Gemini) extrai os itens, o cliente confirma com SIM/NÃO e o feirante recebe a lista consolidada de separação.
+Automação de pedidos de hortifrúti: o cliente manda áudio/texto no WhatsApp, uma LLM (Gemini) extrai os itens, o cliente responde 1 (confirmar), 2 (corrigir) ou 3 (cancelar) e o feirante recebe a lista consolidada de separação.
 
 ## 1. Como as peças se conectam
 
@@ -108,8 +108,8 @@ O webhook já está configurado globalmente no `docker-compose.yml` (`WEBHOOK_GL
 ### 4.4 Testar o fluxo completo
 
 1. De **outro** número, mande para o número conectado: *"quero 2 quilos de tomate e 3 maços de coentro"* (ou um áudio).
-2. O bot responde com o resumo e pede **SIM/NÃO**.
-3. Responda **SIM**.
+2. O bot responde com o resumo e pede **1** (confirmar), **2** (corrigir) ou **3** (cancelar).
+3. Responda **1** (SIM também vale).
 4. Veja os dados: http://localhost:8000/pedidos e http://localhost:8000/pedidos/separacao (totais somados dos pedidos confirmados).
 
 Se algo falhar: `docker compose logs -f api evolution-api`.

@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.5-flash"
 
+    # Pedido por áudio (US-06): limite de duração, tamanho do arquivo e espera pela IA
+    audio_max_segundos: int = 60
+    audio_max_bytes: int = 5_000_000
+    audio_timeout_segundos: float = 45
+
     # Admins (lista separada por vírgula)
     admin_numbers: str = ""
 

@@ -85,6 +85,19 @@ Critérios da DoD de US: PR revisado · critérios validados pelo QA · testes p
 | US-10 (SCRUM-34) | Aguardando revisão (PR #14) | Sim (CT-22 a CT-23b) | Sim | Aguardando CI | Pendente | Sim | Pendente (prazo de 30 min) | Em revisão |
 | RK-02 (SCRUM-57) | Aguardando revisão (PR #15) | Sim (CT-51) | Sim | Aguardando CI | N/A | Sim | Pendente | Em revisão; risco mitigado |
 
+### DoD da Sprint 2: itens verificados pelo QA
+
+Valores para a coluna "Sprint 2" da planilha `Definition_of_Done_HortiReg` (aba "DoD da Sprint").
+
+| Nº | Critério | Sprint 2 | Evidência e observação |
+|---|---|---|---|
+| 2 | US concluídas atendem à DoD de US | Não | A US-06 está Done sem PR e com CI vermelho (seção 4) |
+| 7 | Bugs da sprint registrados com evidência e severidade | Parcial | 5 bugs documentados na seção 2; o registro no Jira depende de criar o tipo Bug |
+| 8 | Nenhum bug crítico ou alto aberto sem plano | Sim | BUG-04 e BUG-05 têm plano (seção 5) |
+| 9 | Regressão dos itens afetados executada | Sim | Seção 1 |
+| 21 | Gherkin da US automatizado e passando no CI | Parcial | US-08 e US-10 passam local, com o CI dos PRs pendente; US-06 bloqueada |
+| 22 | Mensagens do bot revisadas (sem silêncio) | Não | BUG-03 |
+
 ## 5. Ações para fechar a R2
 
 1. Proteger `main` e `develop`, exigindo 1 aprovação e CI verde. Responsável: DevOps.

@@ -7,7 +7,7 @@ Cada caso aponta para a US (issue do Jira), para o cenário automatizado que o v
 - API e bot: `backend/tests/features/*.feature`, com os passos em `backend/tests/test_*.py`.
 - Painel: `frontend/cypress/e2e/*.feature`.
 
-**Status:** Passou (CI) · Passou (local): ainda não está na `develop` · Falhou: tem bug aberto · Bloqueado · Pendente: a US ainda não foi feita · Manual.
+**Status:** Especificado: `.feature` escrito pelo QA com `@wip` (não roda no CI), aguardando os passos · Passou (CI) · Passou (local): ainda não está na `develop` · Falhou: tem bug aberto · Bloqueado · Pendente: a US ainda não foi feita · Manual.
 
 ## Release 1 (Sprint 1)
 
@@ -33,17 +33,17 @@ Cada caso aponta para a US (issue do Jira), para o cenário automatizado que o v
 |---|---|---|---|---|
 | CT-13 | US-06 / SCRUM-30 | `pedido_audio.feature` "Pedido por áudio com nomes regionais" | Bloqueado | Passa local (59/59), mas a branch está sem PR e com CI vermelho (BUG-05) |
 | CT-14a a CT-14g | US-06 / SCRUM-30 | `pedido_audio.feature`: 7 cenários `@excecao` (áudio longo, formato, ininteligível, arquivo grande, falha no download, IA fora do ar, tempo esgotado) | Bloqueado | Mesmo motivo do CT-13 |
-| CT-15, CT-16 | US-07 / SCRUM-31 | Ainda sem cenário (a US está em andamento e sem branch) | Pendente | — |
+| CT-15, CT-16 | US-07 / SCRUM-31 | `pedido_itens_ambiguos.feature` (`@wip`) | Especificado | Cenários prontos; faltam os passos e a implementação |
 | CT-17 | US-08 / SCRUM-32 | `pedido_confirmacao.feature` "Cliente confirma o pedido" (`1` e `confirmar`) | Passou (local) | PR #13 |
 | CT-18 | US-08 / SCRUM-32 | `pedido_confirmacao.feature` "Resposta ambígua à confirmação" | Passou (local) | PR #13; corrige o BUG-02 |
 | CT-19 | US-08 / SCRUM-32 | `pedido_confirmacao.feature` "Confirmação vinda de outro número" | Passou (local) | PR #13; o log não traz o telefone |
 | CT-19b | US-08 / SCRUM-32 | `pedido_confirmacao.feature` "Cliente cancela ou pede correção" | Passou (local) | PR #13 |
-| CT-20, CT-21 | US-09 / SCRUM-33 | — | Pendente | Sprint 3 |
+| CT-20, CT-20b, CT-21 | US-09 / SCRUM-33 | `pedido_correcao_cancelamento.feature` (`@wip`) | Especificado | Sprint 3 |
 | CT-22 | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Pedido expira sem confirmação" | Passou (local) | PR #14 |
 | CT-23 | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Confirmação depois da expiração" | Passou (local) | PR #14 |
 | CT-23b | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Pedido dentro do prazo não expira" | Passou (local) | PR #14 |
-| CT-24, CT-25 | US-11 / SCRUM-35 | — | Pendente | Sprint 3 |
-| CT-26, CT-27 | US-12 / SCRUM-36 | — (implementação revertida da Sprint 1; cópia em `backup/SCRUM-36-pedidos-do-dia`) | Pendente | Sprint 3 |
+| CT-24, CT-25, CT-25b | US-11 / SCRUM-35 | `pedido_endereco.feature` (`@wip`); o CT-25b verifica a LGPD (endereço fora dos logs) | Especificado | Sprint 3 |
+| CT-26, CT-27 | US-12 / SCRUM-36 | Cypress `pedidos_do_dia.feature` (`@wip`) | Especificado | Sprint 3; existe uma implementação antiga em `backup/SCRUM-36-pedidos-do-dia` |
 
 ## Releases 3 e 4 (planejados)
 

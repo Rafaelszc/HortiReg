@@ -105,6 +105,8 @@ curl -X POST http://localhost:8080/instance/create \
 
 O webhook já está configurado globalmente no `docker-compose.yml` (`WEBHOOK_GLOBAL_URL=http://api:8000/webhook/whatsapp`). Dentro do Docker os containers se enxergam pelo **nome do serviço** (`api`, `postgres`, `evolution-api`), por isso não é `localhost`.
 
+**Token do webhook:** defina `WEBHOOK_TOKEN` no `.env` (ex.: `openssl rand -hex 24`). O compose já o repassa à Evolution na URL do webhook (`?token=...`), e a API responde `401` a quem não o enviar (na URL ou no cabeçalho `X-Webhook-Token`). Vazio = sem verificação, só para desenvolvimento local. Atenção: o token na URL aparece nos logs de acesso do uvicorn; troque-o se os logs forem compartilhados. Depois de definir ou mudar o token, recrie a Evolution: `docker compose up -d evolution-api api`.
+
 ### 4.4 Testar o fluxo completo
 
 1. De **outro** número, mande para o número conectado: *"quero 2 quilos de tomate e 3 maços de coentro"* (ou um áudio).

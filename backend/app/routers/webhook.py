@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import SessionLocal
 from app.models import Cliente, ItemPedido, MensagemProcessada, Pedido, StatusPedido
 from app.services import catalogo, llm, whatsapp
+from app.services.webhook_auth import exigir_token
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
 log = logging.getLogger("sgv.webhook")
@@ -22,7 +23,7 @@ MSG_SEM_ITENS = (
 )
 
 
-@router.post("/whatsapp")
+@router.post("/whatsapp", dependencies=[Depends(exigir_token)])
 async def receber(payload: dict, background: BackgroundTasks):
     """Responde 200 imediatamente e processa a mensagem em segundo plano."""
     if payload.get("event", "").lower().replace("_", ".") != "messages.upsert":

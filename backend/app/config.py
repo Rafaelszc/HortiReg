@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.5-flash"
 
+    # Token do webhook (SCRUM: segurança). Vazio = webhook aberto; defina em qualquer ambiente exposto.
+    webhook_token: str = ""
+
     # Admins (lista separada por vírgula)
     admin_numbers: str = ""
 

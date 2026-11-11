@@ -57,7 +57,7 @@ ADMIN_LOGIN=... ADMIN_PASSWORD=... TAGS='@smoke' npx cypress run   # precisa API
 - `routers/webhook.py`: `POST /webhook/whatsapp` responde 200 na hora e processa em `BackgroundTasks`. Ignora `fromMe` e grupos. Com pedido pendente, `1`/`SIM` confirma, `2` cancela para correção, `3`/`NAO` cancela e qualquer outra mensagem repete as opções (US-08); sem pendente, chama `llm.extrair_pedido` e cria `Pedido` com status `AGUARDANDO_CONFIRMACAO`.
 - `routers/pedidos.py`: todo o router protegido por `Depends(get_current_admin)`; `/pedidos` (filtro dia/status) e `/pedidos/separacao`.
 - `routers/auth.py`: `POST /auth/login` → `access_token` Bearer.
-- Status de pedido: `AGUARDANDO_CONFIRMACAO | CONFIRMADO | CANCELADO | ENTREGUE` (espelhado em `frontend/src/api.ts`).
+- Status de pedido: `AGUARDANDO_CONFIRMACAO | CONFIRMADO | CANCELADO | ENTREGUE | EXPIRADO` (EXPIRADO: pendente há mais de `PEDIDO_EXPIRA_MINUTOS`, laço em `services/expiracao.py`) (espelhado em `frontend/src/api.ts`).
 
 ## Testes
 

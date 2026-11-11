@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import SessionLocal
 from app.models import Cliente, ItemPedido, MensagemProcessada, Pedido, StatusPedido
-from app.services import catalogo, llm, whatsapp
+from app.services import catalogo, expiracao, llm, whatsapp
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
 log = logging.getLogger("sgv.webhook")
@@ -21,6 +21,10 @@ OPCOES = {
     **dict.fromkeys(("3", "nao", "não", "n", "cancelar", "cancela"), "cancelar"),
 }
 MSG_OPCOES = "Responda *1* para confirmar, *2* para corrigir ou *3* para cancelar."
+MSG_JA_EXPIROU = (
+    "O pedido #{id} expirou e não pode mais ser confirmado. "
+    "Quer refazer? É só mandar o pedido de novo, por texto ou áudio."
+)
 MSG_SEM_ITENS = (
     "Não consegui entender os itens do pedido. Pode repetir? 🙏\n"
     'Exemplo: "quero 2 kg de tomate e 1 caixa de banana".'
@@ -59,6 +63,7 @@ async def processar_mensagem(data: dict) -> None:
             cliente = await _obter_cliente(session, telefone, data.get("pushName"))
 
             # Etapa 2: com pedido pendente, só 1, 2 ou 3 valem; nada vira pedido novo
+            await expiracao.expirar_pendentes(session)  # pendente vencido não pode ser confirmado
             opcao = OPCOES.get(texto.strip().lower()) if texto else None
             pendente = await _pedido_pendente(session, cliente)
             if opcao or pendente:
@@ -142,6 +147,12 @@ async def _pedido_pendente(session: AsyncSession, cliente: Cliente) -> Pedido | 
 
 async def _tratar_resposta(session: AsyncSession, cliente: Cliente, pedido: Pedido | None, opcao: str | None) -> None:
     if pedido is None:
+        ultimo = await session.scalar(
+            select(Pedido).where(Pedido.cliente_id == cliente.id).order_by(Pedido.id.desc())
+        )
+        if opcao == "confirmar" and ultimo is not None and ultimo.status == StatusPedido.EXPIRADO:
+            await whatsapp.enviar_texto(cliente.telefone, MSG_JA_EXPIROU.format(id=ultimo.id))
+            return
         # id interno no log, não o telefone (sem dados pessoais nos logs)
         log.warning("Cliente %s respondeu '%s' sem pedido aguardando confirmação", cliente.id, opcao)
         await whatsapp.enviar_texto(cliente.telefone, "Você não tem nenhum pedido aguardando confirmação.")

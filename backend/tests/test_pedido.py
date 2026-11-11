@@ -1,14 +1,17 @@
 import re
+from datetime import timedelta
 
 from pytest_bdd import given, parsers, scenarios, then, when
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 from app.models import ItemPedido, Pedido, StatusPedido
 from app.routers.webhook import MSG_OPCOES
+from app.services import expiracao
 from tests.conftest import TELEFONE, mensagem, rodar
 
 scenarios("features/pedido.feature")
 scenarios("features/pedido_confirmacao.feature")
+scenarios("features/pedido_expiracao.feature")
 OUTRO_TELEFONE = "5583988887777"
 
 
@@ -143,3 +146,29 @@ def _cancelado(ctx):
 @then(parsers.parse('o cliente recebe "{trecho}"'))
 def _recebe(ctx, trecho):
     assert trecho in ctx["enviadas"][-1][1]
+
+
+@given(parsers.parse("que o pedido está aguardando confirmação há {minutos:d} minutos"))
+def _envelhecer(ctx, minutos):
+    async def _atualizar(s):
+        await s.execute(update(Pedido).values(criado_em=func.now() - timedelta(minutes=minutos)))
+        await s.commit()
+
+    rodar(_atualizar)
+
+
+@when("o prazo de expiração é verificado")
+def _verificar_prazo(ctx):
+    rodar(expiracao.expirar_pendentes)
+
+
+@then("o pedido fica expirado")
+def _expirado(ctx):
+    assert list(_pedidos())[0].status == StatusPedido.EXPIRADO
+
+
+@then("o pedido não entra na lista de separação")
+def _fora_da_separacao(ctx, token):
+    r = ctx["client"].get("/pedidos/separacao", headers=token)
+    assert r.status_code == 200
+    assert r.json() == []

@@ -1,11 +1,14 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from sqlalchemy import text
 
 from app import models  # noqa: F401  (registra as tabelas no metadata)
 from app.database import Base, engine
 from app.routers import auth, pedidos, produtos, webhook
+from app.services import expiracao
 
 logging.basicConfig(level=logging.INFO)
 
@@ -15,7 +18,11 @@ async def lifespan(app: FastAPI):
     # Cria as tabelas se não existirem. (Mais tarde: trocar por migrações com Alembic.)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # create_all não altera enum já existente; status novo da US-10
+        await conn.execute(text("ALTER TYPE statuspedido ADD VALUE IF NOT EXISTS 'EXPIRADO'"))
+    tarefa = asyncio.create_task(expiracao.rodar_periodicamente())
     yield
+    tarefa.cancel()
     await engine.dispose()
 
 

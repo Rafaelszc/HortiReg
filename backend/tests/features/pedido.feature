@@ -48,3 +48,20 @@ Funcionalidade: Pedido por texto com resumo estruturado (US-05)
     Quando o cliente envia "quero menos 2 kg de tomate"
     Então nenhum pedido é criado
     E o cliente recebe orientação de como pedir com um exemplo
+
+  # RK-03: IA indisponível nunca deixa o cliente sem resposta
+  @regressao @excecao
+  Cenário: IA fora do ar no pedido por texto
+    Dado um catálogo ativo com tomate e banana
+    E que a IA está fora do ar
+    Quando o cliente envia "quero 2 kg de tomate"
+    Então nenhum pedido é criado
+    E o cliente é avisado que o pedido não pôde ser lido agora
+
+  @regressao @excecao
+  Cenário: IA demora mais que o limite de espera no pedido por texto
+    Dado um catálogo ativo com tomate e banana
+    E que a IA demora mais que o limite de espera
+    Quando o cliente envia "quero 2 kg de tomate"
+    Então nenhum pedido é criado
+    E o cliente é avisado que o pedido não pôde ser lido agora

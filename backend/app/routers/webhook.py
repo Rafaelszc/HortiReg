@@ -43,6 +43,9 @@ MSG_AUDIO_INCOMPREENDIDO = (
     "Não consegui entender seu áudio. "
     "Pode gravar de novo, mais curto e perto do celular, ou escrever o pedido em texto? 🙏\n" + EXEMPLO
 )
+MSG_IA_FALHA = (
+    "Não consegui processar seu pedido agora. Pode mandar de novo daqui a pouco? 🙏\n" + EXEMPLO
+)
 MSG_AUDIO_FALHA = (
     "Não consegui ouvir seu áudio agora. Pode mandar de novo daqui a pouco ou escrever o pedido em texto? 🙏\n"
     + EXEMPLO
@@ -96,7 +99,9 @@ async def processar_mensagem(data: dict) -> None:
                     return  # o cliente já foi avisado
                 msg_sem_itens = MSG_AUDIO_INCOMPREENDIDO
             elif texto:
-                pedido_extraido = await llm.extrair_pedido(texto=texto)
+                pedido_extraido = await _extrair_do_texto(telefone, key, texto)
+                if pedido_extraido is None:
+                    return  # o cliente já foi avisado
             else:
                 return
 
@@ -118,6 +123,19 @@ async def processar_mensagem(data: dict) -> None:
             )
     except Exception:
         log.exception("Erro ao processar mensagem do WhatsApp")
+
+
+async def _extrair_do_texto(telefone: str, key: dict, texto: str) -> PedidoExtraido | None:
+    """Interpreta o texto. Se a IA falhar ou demorar, avisa o cliente e devolve None (RK-03: nunca silêncio)."""
+    try:
+        return await asyncio.wait_for(
+            llm.extrair_pedido(texto=texto),
+            timeout=settings.ia_texto_timeout_segundos,
+        )
+    except Exception:
+        log.exception("Falha ao interpretar o texto da mensagem %s", key.get("id"))
+        await whatsapp.enviar_texto(telefone, MSG_IA_FALHA)
+        return None
 
 
 async def _extrair_do_audio(telefone: str, key: dict, msg_audio: dict) -> PedidoExtraido | None:

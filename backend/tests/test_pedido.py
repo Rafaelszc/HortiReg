@@ -3,8 +3,9 @@ from datetime import timedelta
 from pytest_bdd import given, parsers, scenarios, then, when
 from sqlalchemy import func, select, update
 
+from app.config import settings
 from app.models import ItemPedido, Pedido, StatusPedido
-from app.routers.webhook import MSG_OPCOES
+from app.routers.webhook import MSG_IA_FALHA, MSG_OPCOES
 from app.services import expiracao
 from tests.conftest import TELEFONE, itens_do_texto, mensagem, rodar
 
@@ -27,6 +28,17 @@ def _ia_extrai(ctx, texto):
 @given("que a IA não extrai nenhum item")
 def _ia_vazia(ctx):
     ctx["llm"]["responder"]()
+
+
+@given("que a IA está fora do ar")
+def _ia_fora(ctx):
+    ctx["llm"]["erro"] = RuntimeError("503 Service Unavailable")
+
+
+@given("que a IA demora mais que o limite de espera")
+def _ia_demora(ctx, monkeypatch):
+    monkeypatch.setattr(settings, "ia_texto_timeout_segundos", 0.05)
+    ctx["llm"]["demora"] = 1
 
 
 @given(parsers.parse('o cliente envia "{texto}"'))
@@ -65,6 +77,11 @@ def _resumo(ctx, valor):
 @then("nenhum pedido é criado")
 def _nenhum(ctx):
     assert rodar(lambda s: s.scalar(select(func.count()).select_from(Pedido))) == 0
+
+
+@then("o cliente é avisado que o pedido não pôde ser lido agora")
+def _avisado(ctx):
+    assert ctx["enviadas"] == [(TELEFONE, MSG_IA_FALHA)]  # sempre uma resposta: nunca silêncio nem duplicada
 
 
 @then("o cliente recebe orientação de como pedir com um exemplo")

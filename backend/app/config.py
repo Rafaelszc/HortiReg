@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.5-flash"
 
+    # Token do webhook (SCRUM: segurança). Vazio = webhook aberto; defina em qualquer ambiente exposto.
+    webhook_token: str = ""
+
     # Admins (lista separada por vírgula)
     admin_numbers: str = ""
 
@@ -28,6 +31,9 @@ class Settings(BaseSettings):
     session_minutes: int = 30
     lockout_attempts: int = 5
     lockout_minutes: int = 15
+
+    # Pedido não confirmado expira depois deste prazo (US-10)
+    pedido_expira_minutos: int = 30
 
     @property
     def admin_list(self) -> list[str]:

@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 
 from app.config import settings
 from app.models import Pedido, Produto, StatusPedido
+from app.routers.webhook import MSG_OPCOES
 from tests.conftest import TELEFONE, itens_do_texto, mensagem_audio, rodar
 
 scenarios("features/pedido_audio.feature")
@@ -91,7 +92,7 @@ def _resumo(ctx, valor):
     numero, texto = ctx["enviadas"][-1]
     assert numero == TELEFONE
     assert f"Valor estimado: {valor}" in texto
-    assert "Responda *SIM*" in texto
+    assert MSG_OPCOES in texto
 
 
 @then(parsers.parse('o áudio foi enviado à IA como "{mime}"'))

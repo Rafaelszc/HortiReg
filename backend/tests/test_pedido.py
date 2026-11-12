@@ -1,10 +1,17 @@
+from datetime import timedelta
+
 from pytest_bdd import given, parsers, scenarios, then, when
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 from app.models import ItemPedido, Pedido, StatusPedido
+from app.routers.webhook import MSG_OPCOES
+from app.services import expiracao
 from tests.conftest import TELEFONE, itens_do_texto, mensagem, rodar
 
 scenarios("features/pedido.feature")
+scenarios("features/pedido_confirmacao.feature")
+scenarios("features/pedido_expiracao.feature")
+OUTRO_TELEFONE = "5583988887777"
 
 
 @given("um catálogo ativo com tomate e banana", target_fixture="ctx")
@@ -52,7 +59,7 @@ def _resumo(ctx, valor):
     numero, texto = ctx["enviadas"][-1]
     assert numero == TELEFONE
     assert f"Valor estimado: {valor}" in texto
-    assert "Responda *SIM*" in texto
+    assert MSG_OPCOES in texto
 
 
 @then("nenhum pedido é criado")
@@ -86,3 +93,73 @@ def _um_pedido(ctx):
 @then("o cliente recebe apenas um resumo")
 def _um_resumo(ctx):
     assert len(ctx["enviadas"]) == 1
+
+
+@when(parsers.parse('outro número envia "{texto}"'))
+def _outro_envia(ctx, texto, caplog):
+    ctx["log"] = caplog
+    assert ctx["client"].post("/webhook/whatsapp", json=mensagem(texto, telefone=OUTRO_TELEFONE)).status_code == 200
+
+
+@then("o cliente recebe a confirmação com o número do pedido")
+def _confirmacao_com_numero(ctx):
+    assert ctx["enviadas"][-1] == (TELEFONE, "✅ Pedido #1 confirmado! Avisaremos quando sair para entrega.")
+
+
+@then("o pedido continua aguardando confirmação")
+def _continua(ctx):
+    pedido = list(_pedidos())[0]
+    assert pedido.status == StatusPedido.AGUARDANDO_CONFIRMACAO
+
+
+@then("o sistema repete as opções 1, 2 e 3")
+def _repete(ctx):
+    assert ctx["enviadas"][-1] == (TELEFONE, f"Não entendi sua resposta sobre o pedido #1. {MSG_OPCOES}")
+
+
+@then("nenhum pedido novo é criado")
+def _sem_novo(ctx):
+    assert len(list(_pedidos())) == 1
+
+
+@then("a tentativa é registrada em log sem o telefone")
+def _log(ctx):
+    avisos = [r.getMessage() for r in ctx["log"].records if r.name == "sgv.webhook" and r.levelname == "WARNING"]
+    assert len(avisos) == 1
+    assert OUTRO_TELEFONE not in avisos[0]
+
+
+@then("o pedido fica cancelado")
+def _cancelado(ctx):
+    assert list(_pedidos())[0].status == StatusPedido.CANCELADO
+
+
+@then(parsers.parse('o cliente recebe "{trecho}"'))
+def _recebe(ctx, trecho):
+    assert trecho in ctx["enviadas"][-1][1]
+
+
+@given(parsers.parse("que o pedido está aguardando confirmação há {minutos:d} minutos"))
+def _envelhecer(ctx, minutos):
+    async def _atualizar(s):
+        await s.execute(update(Pedido).values(criado_em=func.now() - timedelta(minutes=minutos)))
+        await s.commit()
+
+    rodar(_atualizar)
+
+
+@when("o prazo de expiração é verificado")
+def _verificar_prazo(ctx):
+    rodar(expiracao.expirar_pendentes)
+
+
+@then("o pedido fica expirado")
+def _expirado(ctx):
+    assert list(_pedidos())[0].status == StatusPedido.EXPIRADO
+
+
+@then("o pedido não entra na lista de separação")
+def _fora_da_separacao(ctx, token):
+    r = ctx["client"].get("/pedidos/separacao", headers=token)
+    assert r.status_code == 200
+    assert r.json() == []

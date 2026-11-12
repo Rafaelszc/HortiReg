@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     lockout_attempts: int = 5
     lockout_minutes: int = 15
 
+    # Pedido não confirmado expira depois deste prazo (US-10)
+    pedido_expira_minutos: int = 30
+
     @property
     def admin_list(self) -> list[str]:
         return [n.strip() for n in self.admin_numbers.split(",") if n.strip()]

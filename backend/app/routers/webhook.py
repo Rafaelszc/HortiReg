@@ -12,13 +12,22 @@ from app.config import settings
 from app.database import SessionLocal
 from app.models import Cliente, ItemPedido, MensagemProcessada, Pedido, StatusPedido
 from app.schemas.pedido import PedidoExtraido
-from app.services import audio, catalogo, llm, whatsapp
+from app.services import audio, catalogo, expiracao, llm, whatsapp
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
 log = logging.getLogger("sgv.webhook")
 
-SIM = {"sim", "s", "confirmo", "confirmar", "ok", "isso"}
-NAO = {"nao", "não", "n", "cancelar", "cancela"}
+# Resposta ao resumo do pedido (US-08): 1-Confirmar, 2-Corrigir, 3-Cancelar
+OPCOES = {
+    **dict.fromkeys(("1", "sim", "s", "confirmo", "confirmar", "ok", "isso"), "confirmar"),
+    **dict.fromkeys(("2", "corrigir"), "corrigir"),
+    **dict.fromkeys(("3", "nao", "não", "n", "cancelar", "cancela"), "cancelar"),
+}
+MSG_OPCOES = "Responda *1* para confirmar, *2* para corrigir ou *3* para cancelar."
+MSG_JA_EXPIROU = (
+    "O pedido #{id} expirou e não pode mais ser confirmado. "
+    "Quer refazer? É só mandar o pedido de novo, por texto ou áudio."
+)
 EXEMPLO = 'Exemplo: "quero 2 kg de tomate e 1 caixa de banana".'
 MSG_SEM_ITENS = f"Não consegui entender os itens do pedido. Pode repetir? 🙏\n{EXEMPLO}"
 MSG_AUDIO_LONGO = (
@@ -70,9 +79,12 @@ async def processar_mensagem(data: dict) -> None:
 
             cliente = await _obter_cliente(session, telefone, data.get("pushName"))
 
-            # Etapa 2: o cliente está respondendo SIM/NÃO a um pedido pendente
-            if texto and texto.strip().lower() in (SIM | NAO):
-                await _tratar_confirmacao(session, cliente, texto.strip().lower() in SIM)
+            # Etapa 2: com pedido pendente, só 1, 2 ou 3 valem; nada vira pedido novo
+            await expiracao.expirar_pendentes(session)  # pendente vencido não pode ser confirmado
+            opcao = OPCOES.get(texto.strip().lower()) if texto else None
+            pendente = await _pedido_pendente(session, cliente)
+            if opcao or pendente:
+                await _tratar_resposta(session, cliente, pendente, opcao)
                 return
 
             # Etapa 1: interpretar o pedido
@@ -101,8 +113,7 @@ async def processar_mensagem(data: dict) -> None:
 
             await whatsapp.enviar_texto(
                 telefone,
-                f"Entendi seu pedido #{pedido.id}:\n{_resumo(pedido.itens)}\n\n"
-                "Responda *SIM* para confirmar ou *NÃO* para cancelar.",
+                f"Entendi seu pedido #{pedido.id}:\n{_resumo(pedido.itens)}\n\n{MSG_OPCOES}",
             )
     except Exception:
         log.exception("Erro ao processar mensagem do WhatsApp")
@@ -168,8 +179,9 @@ async def _obter_cliente(session: AsyncSession, telefone: str, nome: str | None)
     return cliente
 
 
-async def _tratar_confirmacao(session: AsyncSession, cliente: Cliente, confirmou: bool) -> None:
-    pedido = await session.scalar(
+async def _pedido_pendente(session: AsyncSession, cliente: Cliente) -> Pedido | None:
+    """Pedido do próprio número aguardando confirmação (outro número nunca o altera)."""
+    return await session.scalar(
         select(Pedido)
         .where(
             Pedido.cliente_id == cliente.id,
@@ -177,15 +189,32 @@ async def _tratar_confirmacao(session: AsyncSession, cliente: Cliente, confirmou
         )
         .order_by(Pedido.id.desc())
     )
+
+
+async def _tratar_resposta(session: AsyncSession, cliente: Cliente, pedido: Pedido | None, opcao: str | None) -> None:
     if pedido is None:
+        ultimo = await session.scalar(
+            select(Pedido).where(Pedido.cliente_id == cliente.id).order_by(Pedido.id.desc())
+        )
+        if opcao == "confirmar" and ultimo is not None and ultimo.status == StatusPedido.EXPIRADO:
+            await whatsapp.enviar_texto(cliente.telefone, MSG_JA_EXPIROU.format(id=ultimo.id))
+            return
+        # id interno no log, não o telefone (sem dados pessoais nos logs)
+        log.warning("Cliente %s respondeu '%s' sem pedido aguardando confirmação", cliente.id, opcao)
         await whatsapp.enviar_texto(cliente.telefone, "Você não tem nenhum pedido aguardando confirmação.")
         return
+    if opcao is None:
+        await whatsapp.enviar_texto(
+            cliente.telefone, f"Não entendi sua resposta sobre o pedido #{pedido.id}. {MSG_OPCOES}"
+        )
+        return
 
-    pedido.status = StatusPedido.CONFIRMADO if confirmou else StatusPedido.CANCELADO
+    pedido.status = StatusPedido.CONFIRMADO if opcao == "confirmar" else StatusPedido.CANCELADO
     await session.commit()
-    resposta = (
-        f"✅ Pedido #{pedido.id} confirmado! Avisaremos quando sair para entrega."
-        if confirmou
-        else f"❌ Pedido #{pedido.id} cancelado."
-    )
+    resposta = {
+        "confirmar": f"✅ Pedido #{pedido.id} confirmado! Avisaremos quando sair para entrega.",
+        # shortcut: corrigir = cancelar e pedir de novo; a edição item a item é a US-09
+        "corrigir": f"✏️ Pedido #{pedido.id} cancelado para correção. Envie o pedido completo do jeito certo.",
+        "cancelar": f"❌ Pedido #{pedido.id} cancelado.",
+    }[opcao]
     await whatsapp.enviar_texto(cliente.telefone, resposta)

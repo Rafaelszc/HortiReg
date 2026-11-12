@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     audio_max_segundos: int = 60
     audio_max_bytes: int = 5_000_000
     audio_timeout_segundos: float = 45
+    # Pedido por texto (RK-03): espera máxima pela IA antes de avisar o cliente
+    ia_texto_timeout_segundos: float = 30
 
     # Token do webhook (SCRUM: segurança). Vazio = webhook aberto; defina em qualquer ambiente exposto.
     webhook_token: str = ""

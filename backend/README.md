@@ -161,7 +161,7 @@ uvicorn app.main:app --reload
 docker compose exec postgres psql -U sgv -d postgres -c "CREATE DATABASE hortireg_test"
 # bash:
 DATABASE_URL=postgresql+asyncpg://sgv:SUASENHA@localhost:5433/hortireg_test \
-JWT_SECRET=um-segredo-de-teste-com-32-caracteres-ou-mais \
+JWT_SECRET=$(openssl rand -hex 32) \
 ADMIN_LOGIN=admin ADMIN_PASSWORD=senha-de-teste-123 pytest
 ```
 No PowerShell, defina as mesmas variáveis com `$env:NOME = "valor"` antes de `pytest`. As variáveis do ambiente têm prioridade sobre o `backend/.env`.

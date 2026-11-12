@@ -1,4 +1,3 @@
-import re
 from datetime import timedelta
 
 from pytest_bdd import given, parsers, scenarios, then, when

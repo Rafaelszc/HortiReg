@@ -1,11 +1,11 @@
-## Papéis e responsabilidades (Release 1)
+## Papéis e responsabilidades (Release 2)
 
 | Papel                  | Responsável   | Responsabilidades                                                                                                                                                                                                                                                                                                         |
 | ---------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PO (Product Owner)** | Nidlan        | Mantém e prioriza o Product Backlog; escreve e valida as US e os critérios de aceite em Gherkin; define a meta de cada release; fornece as amostras de áudio e texto do conjunto de referência da IA; aceita ou rejeita cada US na Sprint Review; valida os drivers arquiteturais.                                        |
-| **SM (Scrum Master)**  | Rafael        | Facilita Planning, Daily, Review e Retrospectiva; remove impedimentos; mantém a Definition of Done e o board atualizados; acompanha velocity, burndown e a planilha de riscos; registra os papéis da próxima release neste README.                                                                                        |
-| **QA (Qualidade)**     | Júlio         | Conduz o Plano de Qualidade e o Plano de Teste; escreve os `.feature` e automatiza os cenários (Cypress e pytest-bdd); executa testes exploratórios e de usabilidade; verifica os 9 drivers arquiteturais; registra bugs com severidade e evidências; valida as US antes do aceite do PO.                                 |
-| **DevOps**             | Rafael        | Mantém o pipeline de CI/CD (GitHub Actions), o ambiente local (Docker Compose) e o de homologação; executa testes, cobertura, análise estática e auditoria de dependências no pipeline; cuida de segredos (tokens do WhatsApp e das APIs de IA fora do repositório), monitoramento de disponibilidade, deploy e rollback. |
+| **PO (Product Owner)** | Julio        | Mantém e prioriza o Product Backlog; escreve e valida as US e os critérios de aceite em Gherkin; define a meta de cada release; fornece as amostras de áudio e texto do conjunto de referência da IA; aceita ou rejeita cada US na Sprint Review; valida os drivers arquiteturais.                                        |
+| **SM (Scrum Master)**  | Nidlan        | Facilita Planning, Daily, Review e Retrospectiva; remove impedimentos; mantém a Definition of Done e o board atualizados; acompanha velocity, burndown e a planilha de riscos; registra os papéis da próxima release neste README.                                                                                        |
+| **QA (Qualidade)**     | Rafael         | Conduz o Plano de Qualidade e o Plano de Teste; escreve os `.feature` e automatiza os cenários (Cypress e pytest-bdd); executa testes exploratórios e de usabilidade; verifica os 9 drivers arquiteturais; registra bugs com severidade e evidências; valida as US antes do aceite do PO.                                 |
+| **DevOps**             | Julio        | Mantém o pipeline de CI/CD (GitHub Actions), o ambiente local (Docker Compose) e o de homologação; executa testes, cobertura, análise estática e auditoria de dependências no pipeline; cuida de segredos (tokens do WhatsApp e das APIs de IA fora do repositório), monitoramento de disponibilidade, deploy e rollback. |
 | **Desenvolvimento**    | Toda a equipe | Implementa as US, escreve testes unitários e de integração, revisa pull requests (mínimo de 1 revisão antes do merge) e corrige os bugs.                                                                                                                                                                                  |
 
 ## Execução local
@@ -27,13 +27,15 @@ npm ci
 npm run dev                     # http://127.0.0.1:5173 (proxy para a API em :8000)
 ```
 
-- **Testes da API** (Postgres de teste; Gemini e Evolution são mockados):
+- **Testes da API** (Postgres de teste; Gemini e Evolution são mockados). ⚠️ Os testes **apagam e recriam as tabelas** do banco de `DATABASE_URL`: use um banco só para teste (`hortireg_test`), nunca o `sgv` de desenvolvimento. Passo a passo em [`backend/README.md`](backend/README.md):
 
 ```bash
-cd backend                      # usa backend/.env (copie o da raiz)
+cd backend
 pip install -r requirements-dev.txt
-pytest                          # -m smoke | -m regressao
+# DATABASE_URL (banco de teste), JWT_SECRET, ADMIN_LOGIN e ADMIN_PASSWORD no ambiente
+pytest                          # -m smoke | -m regressao | -m excecao
 ```
+- **Pedido por áudio (US-06):** limites e variáveis (`AUDIO_MAX_SEGUNDOS`, `AUDIO_MAX_BYTES`, `AUDIO_TIMEOUT_SEGUNDOS`) em [`backend/README.md`](backend/README.md#pedido-por-áudio-us-06) e no `.env.example`.
 
 - **E2E do painel:** com API e painel rodando, `cd frontend && ADMIN_LOGIN=... ADMIN_PASSWORD=... TAGS='@smoke' npx cypress run`.
 

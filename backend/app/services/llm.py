@@ -8,7 +8,9 @@ PROMPT = """Você interpreta pedidos de hortifrúti enviados por clientes no Wha
 do Brasil, incluindo gírias e expressões regionais (ex: "meia dúzia", "um quilo e meio",
 "dois maços", "uma caixa"). Extraia APENAS os itens realmente pedidos.
 Normalize nomes para o singular e minúsculo. Se a quantidade for ambígua, use 1.
-Se a mensagem não for um pedido, devolva a lista de itens vazia."""
+Use "kg" para quilo, quilos e kilo. A mensagem pode ser um áudio: ouça-o inteiro e extraia só o que foi dito.
+Se a mensagem não for um pedido, ou o áudio estiver inaudível ou ininteligível, devolva a lista de itens
+vazia. Nunca invente produtos."""
 
 _client: genai.Client | None = None
 

@@ -1,0 +1,57 @@
+================================================================================
+                PRIORIZAÇÃO DO PRODUCT BACKLOG - HORTIREG
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+Release Vigente: Release 2 - Fluxo Principal e Pedidos (03/11 a 26/11/2026)
+Responsável: Julio Araújo (Product Owner da Release 2)
+Histórico: Versão inicial elaborada por Nidlan Hendell (PO da Release 1)
+
+--------------------------------------------------------------------------------
+1. CRITÉRIOS DE PRIORIZAÇÃO ADOTADOS
+--------------------------------------------------------------------------------
+1. Dependência Técnica e Fundação:
+   A infraestrutura básica, autenticação JWT, modelos de banco e contêineres Docker
+   são pré-requisitos essenciais para qualquer fluxo de negócio subsequente.
+
+2. Valor Essencial de Negócio:
+   O coração do sistema é permitir que produtores/administradores cadastrem produtos e
+   que os clientes registrem pedidos com agilidade.
+
+3. Diferencial Tecnológico e Inclusão (Canais Inteligentes):
+   A integração com WhatsApp e o processamento de áudio via LLM (Gemini) representam
+   o principal valor agregado para produtores rurais e clientes que preferem mensagens de voz.
+
+4. Gestão, Relatórios e Métricas:
+   Painéis consolidados, relatórios gerenciais e métricas de desempenho ficam para as
+   releases finais (R3 e R4) após a estabilização dos fluxos operacionais centrais.
+
+--------------------------------------------------------------------------------
+2. BACKLOG PRIORIZADO POR RELEASES
+--------------------------------------------------------------------------------
+
+[RELEASE 1 - 06/10 a 29/10/2026 - Concluída]
+- [US-01] Configuração de infraestrutura Docker e pipeline de CI/CD.
+- [US-02] Autenticação de usuários administrativos via JWT com bloqueio de tentativas.
+- [US-03] Cadastro, edição e consulta de produtos no catálogo (Backend + Frontend).
+- [US-04] Interface Web do painel administrativo básico para gerenciamento.
+
+[RELEASE 2 - 03/11 a 26/11/2026 - Em Andamento]
+- [US-05] Integração com webhook do WhatsApp (Evolution API) para recepção de mensagens.
+- [US-06] Processamento de áudio e extração de texto via API Gemini.
+- [US-07] Criação e estruturação automática de pedidos a partir de texto/áudio.
+- [US-08] Consulta e acompanhamento do status do pedido pelo cliente.
+
+[RELEASE 3 - 01/12 a 22/12/2026 - Planejada]
+- [US-09] Notificações em tempo real de mudança de status do pedido para o cliente.
+- [US-10] Gestão avançada de estoque e baixa automática pós-pedido.
+- [US-11] Tratamento robusto de mensagens fora de padrão e contingência de falhas na IA.
+
+[RELEASE 4 - 02/02 a 18/02/2027 - Planejada]
+- [US-12] Relatórios consolidados de vendas por produtor e produto.
+- [US-13] Exportação de dados e painel gerencial de métricas para Demo Day.
+
+--------------------------------------------------------------------------------
+[MAPEAMENTO / PENDÊNCIAS]:
+- [ ] Vincular cada User Story à chave oficial correspondente no Jira do projeto HortiReg.
+- [ ] Atualizar pontos de história e critérios de priorização conforme refinamento do time.
+================================================================================

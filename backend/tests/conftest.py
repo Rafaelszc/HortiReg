@@ -2,6 +2,7 @@
 
 import asyncio
 import itertools
+import re
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -113,10 +114,16 @@ def whatsapp_fake(monkeypatch):
 @pytest.fixture
 def llm_fake(monkeypatch):
     """Gemini falso: devolve os itens configurados em `resposta`."""
-    estado: dict[str, Any] = {"resposta": PedidoExtraido()}
+    estado: dict[str, Any] = {"resposta": PedidoExtraido(), "chamadas": 0, "erro": None, "demora": 0}
 
     async def extrair_pedido(texto=None, audio=None, audio_mime="audio/ogg"):
+        estado["chamadas"] += 1
         estado["texto"] = texto
+        estado["audio"] = audio
+        estado["audio_mime"] = audio_mime
+        if estado["erro"]:
+            raise estado["erro"]
+        await asyncio.sleep(estado["demora"])
         return estado["resposta"]
 
     monkeypatch.setattr(llm, "extrair_pedido", extrair_pedido)
@@ -126,6 +133,30 @@ def llm_fake(monkeypatch):
 
     estado["responder"] = responder
     return estado
+
+
+@pytest.fixture
+def audio_fake(monkeypatch):
+    """Evolution falsa para o download do áudio: `dados` é o conteúdo; `erro`, se definido, é lançado."""
+    estado: dict[str, Any] = {"dados": b"audio-falso", "erro": None, "baixados": 0}
+
+    async def baixar_audio(message_key: dict) -> bytes:
+        estado["baixados"] += 1
+        if estado["erro"]:
+            raise estado["erro"]
+        return estado["dados"]
+
+    monkeypatch.setattr(whatsapp, "baixar_audio", baixar_audio)
+    return estado
+
+
+def itens_do_texto(texto: str) -> list[tuple[str, float, str]]:
+    """'"2 kg de tomate" e "1 caixa de banana"' -> [("tomate", 2.0, "kg"), ("banana", 1.0, "caixa")]."""
+    itens = []
+    for trecho in re.findall(r'"([^"]+)"', texto):
+        qtd, unidade, nome = re.fullmatch(r"(\S+) (\S+) de (.+)", trecho).groups()
+        itens.append((nome, float(qtd), unidade))
+    return itens
 
 
 _ids = itertools.count(1)
@@ -141,6 +172,18 @@ def mensagem(texto: str, telefone: str = TELEFONE, msg_id: str | None = None) ->
             "message": {"conversation": texto},
         },
     }
+
+
+def mensagem_audio(
+    segundos: int | None = 30, mimetype: str = "audio/ogg; codecs=opus", telefone: str = TELEFONE
+) -> dict:
+    """Evento messages.upsert com uma nota de voz (audioMessage no lugar do texto)."""
+    evento = mensagem("", telefone)
+    audio = {"mimetype": mimetype, "ptt": True}
+    if segundos is not None:
+        audio["seconds"] = segundos
+    evento["data"]["message"] = {"audioMessage": audio}
+    return evento
 
 
 @pytest.fixture

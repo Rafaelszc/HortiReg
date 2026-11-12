@@ -1,0 +1,64 @@
+================================================================================
+                    REGISTRO DE DAILIES - HORTIREG
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+Facilitação e registro: Nidlan Hendell (Scrum Master da Release 2)
+Integrantes: Nidlan Hendell, Rafael e Julio Araújo
+
+Cadência: Segundas e quartas-feiras, às 20h, online (até 15 minutos).
+Perguntas norteadoras:
+1) O que fiz desde a última reunião?
+2) O que farei até a próxima?
+3) Há algum impedimento ou travamento no meu progresso?
+
+--------------------------------------------------------------------------------
+DAILY - TERÇA-FEIRA, 03/11/2026, 20:00h
+--------------------------------------------------------------------------------
+Presentes: Nidlan Hendell (Scrum Master), Rafael, Julio Araújo
+Duração: 12 minutos
+Pauta Principal: Correção das pendências
+
+Resumo das Atualizações:
+- Nidlan Hendell:
+  * Feito: Revisão das pendências apontadas no encerramento da release anterior e alinhamento do board.
+  * Próximo: Estruturação dos acordos de trabalho e organização das tarefas prioritárias.
+  * Impedimentos: IMP-01 (Sobrecarga devido a encerramento de unidade acadêmica entre 02/11 e 12/11).
+
+- Rafael:
+  * Feito: Verificação dos apontamentos de QA e ajustes de testes no pipeline de CI.
+  * Próximo: Correção das pendências técnicas no ambiente e apoio nas correções de bugs relatados.
+  * Impedimentos: IMP-01 (Redução de horas disponíveis para desenvolvimento).
+
+- Julio Araújo:
+  * Feito: Levantamento dos itens pendentes de documentação e refinamento dos critérios de aceite.
+  * Próximo: Consolidação das pendências resolvidas e preparação das novas histórias para desenvolvimento.
+  * Impedimentos: IMP-01 (Impacto no ritmo de entrega do backlog).
+
+--------------------------------------------------------------------------------
+DAILY - QUINTA-FEIRA, 05/11/2026, 20:00h
+--------------------------------------------------------------------------------
+Presentes: Nidlan Hendell (Scrum Master), Rafael, Julio Araújo
+Duração: 10 minutos
+Pauta Principal: Acompanhamento de cada um
+
+Resumo das Atualizações:
+- Nidlan Hendell:
+  * Feito: Acompanhamento individual dos fluxos e verificação do status das atividades no Jira.
+  * Próximo: Facilitação contínua, remoção de atritos de processo e atualização dos registros de cerimônias.
+  * Impedimentos: IMP-01 (Monitoramento da sobrecarga acadêmica do time até 12/11).
+
+- Rafael:
+  * Feito: Validação da estabilidade dos containers Docker e testes automatizados de regressão.
+  * Próximo: Acompanhamento da cobertura de testes nos módulos principais e suporte ao time.
+  * Impedimentos: IMP-01 (Janela curta de dedicação até conclusão das avaliações).
+
+- Julio Araújo:
+  * Feito: Progresso no desenvolvimento das histórias e alinhamento do fluxo de integração do sistema.
+  * Próximo: Finalização da implementação das funcionalidades da semana para envio a code review.
+  * Impedimentos: IMP-01 (Ritmo ajustado para manter a qualidade sem quebrar entregas).
+
+--------------------------------------------------------------------------------
+[MAPEAMENTO / PENDÊNCIAS]
+- Conforme o avanço das sprints (Sprint 2, Sprint 3, etc.), os registros das próximas 
+  dailies de cada ciclo devem ser incrementados neste diretório ou na pasta da respectiva sprint.
+================================================================================

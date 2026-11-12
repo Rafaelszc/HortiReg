@@ -1,4 +1,3 @@
-import re
 from datetime import timedelta
 
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -7,7 +6,7 @@ from sqlalchemy import func, select, update
 from app.models import ItemPedido, Pedido, StatusPedido
 from app.routers.webhook import MSG_OPCOES
 from app.services import expiracao
-from tests.conftest import TELEFONE, mensagem, rodar
+from tests.conftest import TELEFONE, itens_do_texto, mensagem, rodar
 
 scenarios("features/pedido.feature")
 scenarios("features/pedido_confirmacao.feature")
@@ -20,17 +19,9 @@ def _catalogo(catalogo, client, whatsapp_fake, llm_fake):
     return {"client": client, "enviadas": whatsapp_fake, "llm": llm_fake}
 
 
-def _itens(texto: str) -> list[tuple[str, float, str]]:
-    itens = []
-    for trecho in re.findall(r'"([^"]+)"', texto):
-        qtd, unidade, nome = re.fullmatch(r"(\S+) (\S+) de (.+)", trecho).groups()
-        itens.append((nome, float(qtd), unidade))
-    return itens
-
-
 @given(parsers.re(r"que a IA extrai (?P<texto>.+)"))
 def _ia_extrai(ctx, texto):
-    ctx["llm"]["responder"](*_itens(texto))
+    ctx["llm"]["responder"](*itens_do_texto(texto))
 
 
 @given("que a IA não extrai nenhum item")

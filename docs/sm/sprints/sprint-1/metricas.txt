@@ -1,0 +1,33 @@
+================================================================================
+                    MÉTRICAS - SPRINT 1 - HORTIREG
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+Responsável pelo registro: Rafael (Scrum Master da R1) / Revisão: Nidlan Hendell (SM R2)
+
+--------------------------------------------------------------------------------
+1. INDICADORES GERAIS DA SPRINT
+--------------------------------------------------------------------------------
+- Story Points Planejados: 20
+- Story Points Entregues: 20
+- Taxa de Conclusão de Escopo: 100%
+- Quantidade de Histórias / Tarefas Concluídas: [MAPEAMENTO: ajustar conforme Jira]
+- Bugs encontrados durante os testes: [MAPEAMENTO: ver docs/qa/Bugs_Sprint1_HortiReg.txt]
+- Bugs corrigidos na sprint: [MAPEAMENTO: preencher total corrigido]
+- Pull Requests integrados na branch develop: [MAPEAMENTO: extrair do GitHub]
+- Taxa de sucesso do Pipeline de CI (Actions): [MAPEAMENTO: extrair do GitHub Actions]
+
+--------------------------------------------------------------------------------
+2. VELOCIDADE E BURNDOWN
+--------------------------------------------------------------------------------
+- Velocidade alcançada na Sprint 1: ~20 pontos.
+- Gráfico Burndown: docs/sm/sprints/sprint-1/burndown-sprint-1.png
+  [PENDÊNCIA: Exportar print do gráfico do Jira e salvar no caminho indicado]
+
+--------------------------------------------------------------------------------
+3. ANÁLISE E LIÇÕES APRENDIDAS
+--------------------------------------------------------------------------------
+- O ritmo de entrega foi constante, embora a transição das tarefas no Jira precise
+  ocorrer no momento exato em que são concluídas para que a curva do burndown
+  reflita fielmente o progresso diário.
+- Parâmetro para a Sprint 2: manter meta de ~20 pontos de complexidade.
+================================================================================

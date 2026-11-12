@@ -1,0 +1,45 @@
+================================================================================
+                CASOS DE TESTE - SPRINT 1 - HORTIREG
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+QA Responsável (R1): Julio Araújo
+Data: 29/10/2026 (Versão 1.1)
+
+Metodologia: Testes BDD (Gherkin) automatizados com pytest-bdd (Backend) e Cypress (Frontend).
+
+--------------------------------------------------------------------------------
+1. SUÍTE DE AUTENTICAÇÃO E LOGIN (CT-AUTH)
+--------------------------------------------------------------------------------
+CT-AUTH-01: Login com credenciais válidas de administrador
+- Pré-condição: Usuário admin previamente cadastrado no banco via seed.
+- Passos:
+  1. Acessar tela de login (`/login`).
+  2. Inserir email e senha corretos.
+  3. Clicar em "Entrar".
+- Resultado Esperado: Retorno HTTP 200 com token JWT válido e redirecionamento para o Painel.
+- Automação: `backend/tests/test_login.py` e `frontend/cypress/e2e/login.feature`.
+
+CT-AUTH-02: Login com credenciais inválidas
+- Passos:
+  1. Enviar requisição POST para `/auth/token` com senha incorreta.
+- Resultado Esperado: Retorno HTTP 401 Unauthorized com mensagem de erro amigável.
+
+--------------------------------------------------------------------------------
+2. SUÍTE DE PRODUTOS E CATÁLOGO (CT-PROD)
+--------------------------------------------------------------------------------
+CT-PROD-01: Cadastro de novo produto hortifrúti válido
+- Pré-condição: Usuário autenticado com perfil gestor.
+- Passos:
+  1. Enviar payload com `nome`, `preco`, `unidade_medida` (ex: kg, maço) e `categoria`.
+- Resultado Esperado: Retorno HTTP 201 Created com id gerado e produto listado no catálogo.
+- Automação: `backend/tests/test_produtos.py` e `frontend/cypress/e2e/produtos.feature`.
+
+CT-PROD-02: Tentativa de cadastro com dados inválidos (preço negativo)
+- Passos:
+  1. Enviar requisição POST com `preco: -5.0`.
+- Resultado Esperado: Retorno HTTP 422 com detalhamento do campo inconsistente.
+
+--------------------------------------------------------------------------------
+[MAPEAMENTO / PENDÊNCIAS]:
+- [ ] Expandir suíte para os casos de teste da Sprint 2 (Webhooks WhatsApp e processamento de áudio com Gemini).
+================================================================================

@@ -1,0 +1,38 @@
+================================================================================
+            ATA DA RETROSPECTIVA - SPRINT 1 (FIM DA RELEASE 1)
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+Data: 29/10/2026
+Facilitação: Rafael (Scrum Master da R1)
+Presentes: Nidlan Hendell, Rafael, Julio Araújo
+
+--------------------------------------------------------------------------------
+1. O QUE FUNCIONOU BEM (PONTOS FORTES)
+--------------------------------------------------------------------------------
+- Cumprimento dos principais objetivos planejados para a base do HortiReg.
+- Implementação de testes automatizados desde o início (backend e frontend).
+- Adoção de Docker Compose para facilitar a execução e replicação dos ambientes.
+- Boa comunicação e engajamento da equipe durante o desenvolvimento.
+
+--------------------------------------------------------------------------------
+2. PONTOS DE ATENÇÃO / O QUE PODEMOS MELHORAR
+--------------------------------------------------------------------------------
+- Movimentação do board do Jira deve ser mais tempestiva ao longo da sprint.
+- Documentação formal e atas devem ser preenchidas no dia das cerimônias.
+- Reduzir acúmulo de revisões de Pull Request para o final da sprint.
+
+--------------------------------------------------------------------------------
+3. PLANO DE AÇÃO PARA A SPRINT 2 / RELEASE 2
+--------------------------------------------------------------------------------
+| Ação / Melhoria                                         | Responsável   | Prazo      |
+|---------------------------------------------------------|---------------|:----------:|
+| Atualização diária dos status no board do Jira          | Toda a equipe | Contínuo   |
+| Revisão de PRs em no máximo 24 horas úteis              | Revisor da vez| Diário     |
+| Subir atas e registros no mesmo dia da cerimônia        | Nidlan (SM R2)| Semanal    |
+| Refinar Definition of Done e validações de QA           | Rafael (QA R2)| 12/11/2026 |
+
+--------------------------------------------------------------------------------
+4. STATUS DAS AÇÕES ANTERIORES
+--------------------------------------------------------------------------------
+Primeira sprint do projeto: sem ações prévias para acompanhamento.
+================================================================================

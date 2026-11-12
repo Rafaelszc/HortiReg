@@ -1,5 +1,6 @@
 """Recebe os eventos da Evolution API (mensagens do WhatsApp)."""
 
+import asyncio
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends
@@ -7,9 +8,11 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.database import SessionLocal
 from app.models import Cliente, ItemPedido, MensagemProcessada, Pedido, StatusPedido
-from app.services import catalogo, expiracao, llm, whatsapp
+from app.schemas.pedido import PedidoExtraido
+from app.services import audio, catalogo, expiracao, llm, whatsapp
 from app.services.webhook_auth import exigir_token
 
 router = APIRouter(prefix="/webhook", tags=["webhook"])
@@ -26,9 +29,23 @@ MSG_JA_EXPIROU = (
     "O pedido #{id} expirou e não pode mais ser confirmado. "
     "Quer refazer? É só mandar o pedido de novo, por texto ou áudio."
 )
-MSG_SEM_ITENS = (
-    "Não consegui entender os itens do pedido. Pode repetir? 🙏\n"
-    'Exemplo: "quero 2 kg de tomate e 1 caixa de banana".'
+EXEMPLO = 'Exemplo: "quero 2 kg de tomate e 1 caixa de banana".'
+MSG_SEM_ITENS = f"Não consegui entender os itens do pedido. Pode repetir? 🙏\n{EXEMPLO}"
+MSG_AUDIO_LONGO = (
+    "Seu áudio ficou longo demais (o limite é de {limite} segundos). "
+    "Pode mandar um áudio mais curto ou escrever o pedido em texto? 🙏\n" + EXEMPLO
+)
+MSG_AUDIO_FORMATO = (
+    "Não consegui abrir esse tipo de áudio. "
+    "Pode gravar uma mensagem de voz pelo WhatsApp ou escrever o pedido em texto? 🙏\n" + EXEMPLO
+)
+MSG_AUDIO_INCOMPREENDIDO = (
+    "Não consegui entender seu áudio. "
+    "Pode gravar de novo, mais curto e perto do celular, ou escrever o pedido em texto? 🙏\n" + EXEMPLO
+)
+MSG_AUDIO_FALHA = (
+    "Não consegui ouvir seu áudio agora. Pode mandar de novo daqui a pouco ou escrever o pedido em texto? 🙏\n"
+    + EXEMPLO
 )
 
 
@@ -72,16 +89,19 @@ async def processar_mensagem(data: dict) -> None:
                 return
 
             # Etapa 1: interpretar o pedido
+            msg_sem_itens = MSG_SEM_ITENS
             if eh_audio:
-                audio = await whatsapp.baixar_audio(key)
-                pedido_extraido = await llm.extrair_pedido(audio=audio)
+                pedido_extraido = await _extrair_do_audio(telefone, key, msg["audioMessage"])
+                if pedido_extraido is None:
+                    return  # o cliente já foi avisado
+                msg_sem_itens = MSG_AUDIO_INCOMPREENDIDO
             elif texto:
                 pedido_extraido = await llm.extrair_pedido(texto=texto)
             else:
                 return
 
             if not pedido_extraido.itens:
-                await whatsapp.enviar_texto(telefone, MSG_SEM_ITENS)
+                await whatsapp.enviar_texto(telefone, msg_sem_itens)
                 return
 
             pedido = Pedido(
@@ -98,6 +118,32 @@ async def processar_mensagem(data: dict) -> None:
             )
     except Exception:
         log.exception("Erro ao processar mensagem do WhatsApp")
+
+
+async def _extrair_do_audio(telefone: str, key: dict, msg_audio: dict) -> PedidoExtraido | None:
+    """Valida, baixa e interpreta o áudio. Se não der, avisa o cliente e devolve None (nenhum pedido é criado)."""
+    rejeicao = audio.validar(msg_audio)
+    if rejeicao is audio.Rejeicao.FORMATO:
+        await whatsapp.enviar_texto(telefone, MSG_AUDIO_FORMATO)
+        return None
+    if rejeicao is audio.Rejeicao.LONGO:
+        await whatsapp.enviar_texto(telefone, MSG_AUDIO_LONGO.format(limite=settings.audio_max_segundos))
+        return None
+
+    try:
+        dados = await whatsapp.baixar_audio(key)
+        if audio.tamanho_valido(dados):
+            return await asyncio.wait_for(
+                llm.extrair_pedido(audio=dados, audio_mime=audio.mime_gemini(msg_audio.get("mimetype"))),
+                timeout=settings.audio_timeout_segundos,
+            )
+    except Exception:
+        log.exception("Falha ao interpretar o áudio da mensagem %s", key.get("id"))
+        await whatsapp.enviar_texto(telefone, MSG_AUDIO_FALHA)
+        return None
+
+    await whatsapp.enviar_texto(telefone, MSG_AUDIO_LONGO.format(limite=settings.audio_max_segundos))
+    return None
 
 
 def _resumo(itens: list[ItemPedido]) -> str:

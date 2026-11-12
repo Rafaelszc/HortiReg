@@ -13,6 +13,7 @@ class StatusPedido(str, enum.Enum):
     CONFIRMADO = "CONFIRMADO"
     CANCELADO = "CANCELADO"
     ENTREGUE = "ENTREGUE"
+    EXPIRADO = "EXPIRADO"
 
 
 class Admin(Base):

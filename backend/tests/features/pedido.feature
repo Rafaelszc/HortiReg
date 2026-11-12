@@ -40,3 +40,11 @@ Funcionalidade: Pedido por texto com resumo estruturado (US-05)
     Quando o cliente envia "quero 2 kg de tomate" e a Evolution reenvia o mesmo evento
     Então apenas um pedido é criado
     E o cliente recebe apenas um resumo
+
+  @regressao @excecao
+  Cenário: IA devolve quantidade negativa ou zero
+    Dado um catálogo ativo com tomate e banana
+    E que a IA extrai "-2 kg de tomate" e "0 caixa de banana"
+    Quando o cliente envia "quero menos 2 kg de tomate"
+    Então nenhum pedido é criado
+    E o cliente recebe orientação de como pedir com um exemplo

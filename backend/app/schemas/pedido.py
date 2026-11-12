@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+import math
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class ItemExtraido(BaseModel):
@@ -16,3 +18,9 @@ class PedidoExtraido(BaseModel):
     observacao: str | None = Field(
         default=None, description="Observações do cliente (horário, ponto de referência etc.)"
     )
+
+    @field_validator("itens")
+    @classmethod
+    def _so_quantidade_positiva(cls, itens: list[ItemExtraido]) -> list[ItemExtraido]:
+        """Descarta item com quantidade zero, negativa ou não finita vinda da IA (valor negativo no pedido)."""
+        return [i for i in itens if math.isfinite(i.quantidade) and i.quantidade > 0]

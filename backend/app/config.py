@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     audio_max_bytes: int = 5_000_000
     audio_timeout_segundos: float = 45
 
+    # Token do webhook (SCRUM: segurança). Vazio = webhook aberto; defina em qualquer ambiente exposto.
+    webhook_token: str = ""
+
     # Admins (lista separada por vírgula)
     admin_numbers: str = ""
 

@@ -1,0 +1,55 @@
+================================================================================
+                    MÉTRICAS - SPRINT 2 - HORTIREG (SGV-WA)
+================================================================================
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+Responsável pelo registro: Nidlan Hendell (Scrum Master da R2)
+Período: 03/11/2026 a 12/11/2026 | Data da Medição: 12/11/2026 (Fechamento S2)
+
+--------------------------------------------------------------------------------
+1. INDICADORES GERAIS DE ENTREGA (ESCOPO E VELOCITY)
+--------------------------------------------------------------------------------
+- Story Points Planejados: 18 SP
+  * US-06 (8 SP - Júlio): Pedido por áudio -> Código mesclado e CI verde (8 SP)
+  * US-07 (5 SP - Nidlan): Itens ambíguos ou inexistentes -> PENDENTE (não testada, volta ao backlog)
+  * US-08 (5 SP - Rafael): Confirmação do pedido pelo cliente -> Código mesclado e CI verde (5 SP)
+- Itens Adicionais / Antecipados:
+  * US-10 (3 SP - Rafael): Expiração de pedido -> Código mesclado e CI verde (+3 SP)
+  * US-09 (5 SP - Nidlan): Corrigir ou cancelar pedido -> PENDENTE (não foi feita, mantida para Sprint 3)
+- Pontos Entregues em Código/CI: 16 SP (US-06, US-08, US-10)
+- Pontos Pendentes da Sprint: 5 SP (US-07)
+- Drivers com pendência: DA-USAB-I3-03 (não diretamente executado em sua totalidade; áudio 100%, texto pendente BUG-03)
+- Status de Conclusão Formal: Aguardando aceite formal do PO no Jira (IMP-09) para transição de US-06, US-08 e US-10 para Done.
+
+--------------------------------------------------------------------------------
+2. INDICADORES DE QUALIDADE E TESTES (AUDITADOS EM 12/11/2026)
+--------------------------------------------------------------------------------
+- Casos de Teste Planejados: 16 (CT-13 a CT-19b, CT-22 a CT-23b, CT-61)
+- Casos de Teste Executados: 16 (+ CT-57 de segurança do webhook)
+- Taxa de Aprovação dos Testes: 100% (16/16 passaram)
+- Suíte de Regressão Automatizada: 75/75 testes passando (CI run 43144352377, develop d1d8760)
+- Cobertura de Código nos Módulos de Negócio (Q-01): 93,19% (meta ≥ 70%, fail-under CI = 80%)
+- Gestão de Bugs (Jira SCRUM-71 a SCRUM-75):
+  * Total de bugs encontrados na Sprint 2: 5 bugs
+  * Bugs corrigidos na sprint: 4 (BUG-01, BUG-02, BUG-04, BUG-05)
+  * Bugs críticos ou altos em aberto (Q-02): 0 (Meta atingida!)
+  * Bugs médios em aberto: 1 (BUG-03 / SCRUM-73: silêncio da IA no pedido por texto, mitigado na US SCRUM-53)
+- Qualidade dos Critérios de Aceite em Gherkin (Q-03): 100% (US-06 a US-12)
+- Vulnerabilidades em Dependências (Q-13): 0 (pip-audit no CI)
+- Segredos Expostos no Repositório (Q-14): 0 na develop (BUG-05 gitleaks corrigido no PR #18)
+
+--------------------------------------------------------------------------------
+3. INDICADORES DE PROCESSO E PIPELINE
+--------------------------------------------------------------------------------
+- Revisão de Código em PRs (Q-04): 33% (3 de 9 PRs aprovados formalmente: #18, #19, #20; #13 a #17 com comentário; #21 sem review - IMP-05)
+- Estabilidade do Pipeline de CI (Q-05): 100% na develop (4 de 4 runs concluídos verdes)
+- Impedimentos Registrados: 11 impedimentos (3 resolvidos, 3 parciais, 5 abertos)
+
+--------------------------------------------------------------------------------
+4. ANÁLISE DO SCRUM MASTER E LIÇÕES APRENDIDAS
+--------------------------------------------------------------------------------
+- Qualidade técnica e cobertura de testes excepcionais (93,19%), acima do planejado.
+- Pontos a corrigir imediatamente para a Sprint 3:
+  1) Fazer valer a regra estrita de aprovação de PRs (eliminar o bypass da branch main/develop).
+  2) Registrar o aceite formal do PO no Jira antes do fechamento da sprint (IMP-09).
+  3) Gravar os 50 áudios do conjunto de referência da IA (SCRUM-47) para desbloquear o driver DA-CONF-I1-01.
+================================================================================

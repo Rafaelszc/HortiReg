@@ -2,7 +2,7 @@
             RELATÓRIO DE QUALIDADE - RELEASE 1 - HORTIREG
 ================================================================================
 Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
-Data de Emissão: 29/10/2026
+Data de Emissão: 03/11/2026
 Responsável Técnico: Julio Araújo (QA da Release 1)
 Validação: Nidlan Hendell (PO da R1) e Rafael (DevOps e SM da R1)
 

@@ -1,36 +1,72 @@
 ================================================================================
-                    DEFINITION OF DONE (DoD) - HORTIREG
+            DEFINITION OF DONE (DoD) - SPRINT E RELEASE - HORTIREG
 ================================================================================
-Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
-Equipe: Nidlan Hendell, Rafael e Julio Araújo
-
-A Definition of Done estabelece as condições mínimas e obrigatórias para que uma história
-de usuário seja considerada concluída (Done) pela equipe de desenvolvimento e aceita pelo PO.
-
---------------------------------------------------------------------------------
-1. CRITÉRIOS NO NÍVEL DE HISTÓRIA DE USUÁRIO (USER STORY)
---------------------------------------------------------------------------------
-[x] Código-fonte implementado conforme os requisitos e critérios de aceite descritos em Gherkin.
-[x] Padrão de código e linters validados (Ruff para Python, ESLint/Prettier para React).
-[x] Testes automatizados escritos e passando (testes unitários e de integração com pytest).
-[x] Cenários de teste end-to-end ou de aceitação validados (Cypress/pytest-bdd).
-[x] Pull Request aberto referenciando a chave da história no Jira.
-[x] Revisão de código (Code Review) aprovada por pelo menos 1 membro da equipe (seguindo o rodízio).
-[x] Pipeline de CI verde no GitHub Actions (build e testes 100% aprovados).
-[x] Validação funcional realizada pelo QA (Julio Araújo na R1 / Rafael na R2).
-[x] Aceite formal realizado pelo Product Owner (Nidlan Hendell na R1 / Julio Araújo na R2).
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+Repositório: https://github.com/Rafaelszc/HortiReg
+Equipe: Julio (PO e DevOps), Nidlan (SM), Rafael (QA)
+Responsável pela Manutenção: Nidlan Hendell (Scrum Master)
+Versão: 1.1 · Data: 11/11/2026
 
 --------------------------------------------------------------------------------
-2. CRITÉRIOS NO NÍVEL DE RELEASE
+1. DEFINITION OF DONE – NÍVEL SPRINT (Verificada na Sprint Review)
 --------------------------------------------------------------------------------
-[x] Todas as histórias da release em estado "Concluído" no Jira.
-[x] Nenhum bug de severidade crítica ou alta em aberto.
-[x] Build dos contêineres Docker gerando imagens funcionais sem falhas.
-[x] Documentação e Release Notes da versão atualizadas e publicadas.
-[x] Demonstração das funcionalidades realizada com sucesso para o cliente/docência.
+Quem verifica: QA (Rafael na R2) | Quem aceita: PO (Julio na R2) | Mantém: SM (Nidlan)
+
+A. META E ENTREGAS DA SPRINT
+1. Sprint Goal atingido (ou desvio devidamente justificado nas observações). [PO]
+2. Todas as US marcadas como concluídas atendem à DoD de US (código, testes, CI verde, aceite do PO). [QA]
+3. Itens não concluídos voltaram ao backlog com pendência registrada na issue. [PO]
+4. Incremento demonstrado ao PO na Sprint Review. [SM]
+5. Aceite ou rejeição de cada US formalmente registrado nas issues. [PO]
+
+B. QUALIDADE E INTEGRAÇÃO
+6. Pipeline de CI verde na branch principal (develop/main) ao fim da sprint. [DevOps]
+7. Bugs encontrados na sprint registrados com evidências e severidade no Jira. [QA]
+8. Nenhum bug crítico ou alto em aberto sem plano de tratamento formalizado. [QA]
+9. Regressão completa dos itens afetados executada e com 100% de sucesso. [QA]
+
+C. GESTÃO E CERIMÔNIAS
+10. Board do GitHub Projects / Jira atualizado (status, responsável, story points, sprint). [SM]
+11. Sprint Planning realizada, com plano da sprint e Sprint Goal estabelecidos. [SM]
+12. Ata da Review em docs/sprints/. [SM]
+13. Ata da Retrospectiva em docs/sprints/, com ações, responsáveis e prazos. [SM]
+14. Ações da retrospectiva anterior acompanhadas e medidas. [SM]
+15. Impedimentos registrados com status e resolução rastreada. [SM]
+
+D. MÉTRICAS E PLANEJAMENTO
+16. Métricas da sprint registradas (burndown, velocity e taxa de conclusão). [SM]
+17. Backlog repriorizado pelo PO para o ciclo subsequente. [PO]
+18. Planilha e registro de riscos atualizados com novos apontamentos. [SM]
+19. Itens da próxima sprint com critérios de aceite escritos e estimados (DoR). [PO]
+
+CRITÉRIOS TÉCNICOS DA EQUIPE (HortiReg):
+20. Segredos (tokens WhatsApp, chaves Gemini, senhas do banco) fora do repositório (.env / secrets);
+    nenhuma dependência com vulnerabilidade alta ou crítica (pip-audit e gitleaks verdes). [DevOps]
+21. Cenários Gherkin da US (sucesso e exceção) automatizados e passando no CI. [QA]
+22. Mensagens do bot e telas revisadas quanto à clareza e ao tratamento de erro (0 silêncio/genérico). [QA]
+23. Entradas externas validadas e webhook autenticado por token; sem dados pessoais nos logs (LGPD). [DevOps]
 
 --------------------------------------------------------------------------------
-[MAPEAMENTO / PENDÊNCIAS]:
-- Link da planilha online de controle de DoD (Google Sheets):
-  [A PREENCHER: Adicionar URL da planilha do HortiReg se aplicável]
+2. DEFINITION OF DONE – NÍVEL RELEASE (Release = 2 Sprints)
+--------------------------------------------------------------------------------
+A. ENTREGA DA VERSÃO:
+1. Versão funcional demonstrada na Review de release. [PO]
+2. Versão implantada em ambiente de homologação e demonstrada. [DevOps]
+3. Tag e release criadas no repositório (ex.: v0.1.0, v0.2.0). [DevOps]
+4. Ciclo completo de regressão executado antes da apresentação. [QA]
+5. README atualizado (descrição, como executar e como testar). [DevOps]
+
+B. DOCUMENTAÇÃO EM docs/releases/:
+6. Release notes da versão publicadas pelo PO. [PO]
+7. Relatório de qualidade da release (bugs encontrados/corrigidos e métricas Q-01 a Q-15). [QA]
+8. Relatório de métricas consolidadas (velocity média, burndown, impedimentos). [SM]
+9. Relatório do pipeline de CI/CD. [DevOps]
+10. Retrospectiva de release registrada, avaliando o processo holístico. [SM]
+
+C. GESTÃO E ROTAÇÃO DE PAPÉIS:
+11. Backlog repriorizado para a próxima release com base no feedback. [PO]
+12. Papéis da próxima release definidos e registrados no README. [SM]
+13. Passagem de bastão planejada entre os papéis anterior e novo. [SM]
+14. Avaliação entre pares preenchida por todos os integrantes. [SM]
+15. Planilha de riscos revisada e atualizada. [SM]
 ================================================================================

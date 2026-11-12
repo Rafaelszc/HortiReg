@@ -1,45 +1,93 @@
 ================================================================================
-                CASOS DE TESTE - SPRINT 1 - HORTIREG
+        MATRIZ DE CASOS DE TESTE E RASTREABILIDADE - HORTIREG (SGV-WA)
 ================================================================================
-Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
-QA Responsável (R1): Julio Araújo
-Data: 29/10/2026 (Versão 1.1)
-
-Metodologia: Testes BDD (Gherkin) automatizados com pytest-bdd (Backend) e Cypress (Frontend).
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+QA Responsável (R2): Rafael | Versão: 1.2 · Data: 12/11/2026
+Base: Plano de Teste v1.2 (Alinhado ao CI run 43144352377 com 75/75 testes passando)
 
 --------------------------------------------------------------------------------
-1. SUÍTE DE AUTENTICAÇÃO E LOGIN (CT-AUTH)
+1. CASOS DE TESTE AUTOMATIZADOS E PASSANDO NO CI (SPRINTS 1 E 2)
 --------------------------------------------------------------------------------
-CT-AUTH-01: Login com credenciais válidas de administrador
-- Pré-condição: Usuário admin previamente cadastrado no banco via seed.
-- Passos:
-  1. Acessar tela de login (`/login`).
-  2. Inserir email e senha corretos.
-  3. Clicar em "Entrar".
-- Resultado Esperado: Retorno HTTP 200 com token JWT válido e redirecionamento para o Painel.
-- Automação: `backend/tests/test_login.py` e `frontend/cypress/e2e/login.feature`.
 
-CT-AUTH-02: Login com credenciais inválidas
-- Passos:
-  1. Enviar requisição POST para `/auth/token` com senha incorreta.
-- Resultado Esperado: Retorno HTTP 401 Unauthorized com mensagem de erro amigável.
+[US-01 - Pipeline de CI e Ambiente]
+- CT-01: Pull request com testes passando -> Passou no CI (GitHub Actions)
+- CT-02: Pull request com teste falhando ou dependência vulnerável bloqueia merge -> Passou no CI
+- CT-60: Pipeline falha se houver segredo exposto (gitleaks) ou falha de lint (ruff) -> Passou no CI
+
+[US-02 - Acesso Seguro do Administrador]
+- CT-03: Login do administrador com credenciais válidas -> Passou no CI (`tests/test_login.py`)
+- CT-05: Login com senha incorreta repetida bloqueia após 5 tentativas -> Passou no CI (`tests/test_login.py`)
+- CT-59: Endpoint do painel nega acesso sem sessão autenticada (HTTP 401/403) -> Passou no CI
+
+[US-03 - Cadastrar Produto no Catálogo]
+- CT-06: Cadastro de produto com dados válidos e apelidos -> Passou no CI (`tests/test_produtos.py` / Cypress)
+- CT-07: Cadastro de produto duplicado ou preço <= 0 recusado -> Passou no CI (`tests/test_produtos.py` / Cypress)
+
+[US-04 - Alterar Preço e Inativar Produto]
+- CT-08: Alteração de preço de produto ativo -> Passou no CI (`tests/test_produtos.py`)
+- CT-09: Exclusão lógica (inativação) preservando histórico -> Passou no CI (`tests/test_produtos.py`)
+
+[US-05 - Pedido por Texto com Resumo Estruturado]
+- CT-10: Pedido por texto com itens do catálogo -> Passou no CI (`tests/features/pedido.feature`)
+- CT-11: Mensagem sem nenhum item orienta o cliente -> Passou no CI (`tests/features/pedido.feature`)
+- CT-12: Tentativa de prompt injection/alteração de regras -> Passou no CI (`tests/features/pedido.feature`)
+- CT-61: IA devolve quantidade <= 0 sanitizada (BUG-01) -> Passou no CI (`tests/features/pedido.feature`)
+- CT-51: Idempotência de webhook (1.000 msgs, 200 reenvios, 0 duplicados) -> Passou no CI (`tests/test_pedido.py`)
+- CT-57: Webhook rejeita evento sem token válido (HTTP 401) -> Passou no CI (`tests/test_pedido.py`)
+
+[US-06 - Pedido por Áudio no WhatsApp]
+- CT-13: Pedido por áudio com nomes regionais -> Passou no CI (`tests/features/pedido_audio.feature`)
+- CT-14a: Áudio acima de 60 segundos recusado com instrução -> Passou no CI (`tests/features/pedido_audio.feature`)
+- CT-14b: Áudio em formato não suportado recusado -> Passou no CI (`tests/features/pedido_audio.feature`)
+- CT-14c: Áudio ininteligível solicita reenvio -> Passou no CI (`tests/features/pedido_audio.feature`)
+- CT-14d: Arquivo de áudio grande demais recusado -> Passou no CI (`tests/features/pedido_audio.feature`)
+- CT-14e: Tratamento de falha ao baixar áudio da Evolution -> Passou no CI (`tests/features/pedido_audio.feature`)
+- CT-14f: IA fora do ar (HTTP 5xx) tratada com mensagem -> Passou no CI (`tests/features/pedido_audio.feature`)
+- CT-14g: Timeout na IA tratado com mensagem amigável -> Passou no CI (`tests/features/pedido_audio.feature`)
+
+[US-08 - Confirmação do Pedido pelo Cliente]
+- CT-17: Cliente confirma o pedido (opção "1" ou "confirmar") -> Passou no CI (`tests/features/pedido_confirmacao.feature`)
+- CT-18: Resposta ambígua à confirmação repete opções -> Passou no CI (`tests/features/pedido_confirmacao.feature`)
+- CT-19: Confirmação vinda de outro número rejeitada -> Passou no CI (`tests/features/pedido_confirmacao.feature`)
+- CT-19b: Cliente cancela ou pede correção no resumo -> Passou no CI (`tests/features/pedido_confirmacao.feature`)
+
+[US-10 - Expiração de Pedido Não Confirmado]
+- CT-22: Pedido expira após 30 minutos sem confirmação -> Passou no CI (`tests/features/pedido_expiracao.feature`)
+- CT-23: Tentativa de confirmação após expiração recusa e orienta refazer -> Passou no CI (`tests/features/pedido_expiracao.feature`)
+- CT-23b: Pedido dentro do prazo não sofre expiração precoce -> Passou no CI (`tests/features/pedido_expiracao.feature`)
 
 --------------------------------------------------------------------------------
-2. SUÍTE DE PRODUTOS E CATÁLOGO (CT-PROD)
+2. CASOS DE TESTE PENDENTES E ESPECIFICADOS (GUIA DE IMPLEMENTAÇÃO)
 --------------------------------------------------------------------------------
-CT-PROD-01: Cadastro de novo produto hortifrúti válido
-- Pré-condição: Usuário autenticado com perfil gestor.
-- Passos:
-  1. Enviar payload com `nome`, `preco`, `unidade_medida` (ex: kg, maço) e `categoria`.
-- Resultado Esperado: Retorno HTTP 201 Created com id gerado e produto listado no catálogo.
-- Automação: `backend/tests/test_produtos.py` e `frontend/cypress/e2e/produtos.feature`.
 
-CT-PROD-02: Tentativa de cadastro com dados inválidos (preço negativo)
-- Passos:
-  1. Enviar requisição POST com `preco: -5.0`.
-- Resultado Esperado: Retorno HTTP 422 com detalhamento do campo inconsistente.
+| ID     | US    | Descrição do Cenário                                  | Onde Criar / Como Implementar                                                                   |
+|:-------|:-----:|:------------------------------------------------------|:------------------------------------------------------------------------------------------------|
+| CT-04  | US-02 | Comando de administração de número não autorizado     | Em `tests/test_login.py`: enviar payload simulado com remetente fora da lista de administradores|
+| CT-15  | US-07 | Item ambíguo ("tomate" com várias opções)             | Criar `tests/features/pedido_itens_ambiguos.feature` com prompt retornando opções ao cliente   |
+| CT-16  | US-07 | Item inexistente ou inativo sugerindo similares       | Em `pedido_itens_ambiguos.feature`: mensagem com item fora do catálogo                          |
+| CT-20  | US-09 | Cliente remove item antes da separação                | Criar `tests/features/pedido_correcao_cancelamento.feature` testando remoção parcial            |
+| CT-20b | US-09 | Cancelamento de pedido já confirmado                  | Em `pedido_correcao_cancelamento.feature`: transição para cancelado                               |
+| CT-21  | US-09 | Remoção de item que não consta no pedido              | Cenário de erro avisando que o produto não estava no pedido                                    |
+| CT-24  | US-11 | Cliente informa endereço completo                     | Criar `tests/features/pedido_endereco.feature` validando rua, número e bairro                   |
+| CT-25  | US-11 | Endereço sem rua ou sem número                        | Exceção solicitando o complemento antes da confirmação                                          |
+| CT-25b | US-11 | Endereço não aparece nos logs (LGPD)                  | Verificação de sanitização de logs com regex/formatter                                          |
+| CT-26  | US-12 | Lista de pedidos confirmados do dia no painel         | Teste Cypress E2E em `frontend/cypress/e2e/pedidos_do_dia.feature`                              |
+| CT-27  | US-12 | Painel do dia sem pedidos exibe feedback vazio        | Teste Cypress para estado vazio (empty state)                                                   |
 
 --------------------------------------------------------------------------------
-[MAPEAMENTO / PENDÊNCIAS]:
-- [ ] Expandir suíte para os casos de teste da Sprint 2 (Webhooks WhatsApp e processamento de áudio com Gemini).
+3. COMO EXECUTAR A SUÍTE DE TESTES LOCALMENTE
+--------------------------------------------------------------------------------
+1. Testes Unitários e BDD da API (FastAPI):
+   ```bash
+   cd backend
+   pytest -v --cov=app --cov-report=term-missing
+   # Executar apenas testes de fumaça: pytest -m smoke
+   # Executar apenas regressão: pytest -m regressao
+   ```
+
+2. Testes End-to-End do Painel (Cypress):
+   ```bash
+   cd frontend
+   npx cypress run --spec "cypress/e2e/*.feature"
+   ```
 ================================================================================

@@ -3,7 +3,7 @@
 ================================================================================
 Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
 Responsável pelo registro: Nidlan Hendell (Scrum Master da Release 2)
-Período de Acompanhamento: 02/11/2026 a 12/11/2026
+Período de Acompanhamento: 03/11/2026 a 12/11/2026
 
 --------------------------------------------------------------------------------
 1. IMPEDIMENTOS IDENTIFICADOS
@@ -11,7 +11,7 @@ Período de Acompanhamento: 02/11/2026 a 12/11/2026
 
 [IMP-01]
 ID DO IMPEDIMENTO: IMP-01
-DATA DE REGISTRO: 03/11/2026
+DATA DE REGISTRO: 09/11/2026
 DATA DE RESOLUÇÃO / PREVISÃO: 12/11/2026
 TIPO: Fator Externo / Restrição Temporária de Capacidade da Equipe (Capacity Drop)
 SEVERIDADE: Alta

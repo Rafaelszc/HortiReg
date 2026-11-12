@@ -1,0 +1,62 @@
+================================================================================
+            ATA DA RETROSPECTIVA - SPRINT 2 - HORTIREG (SGV-WA)
+================================================================================
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+Disciplina: Gerência de Projetos (UEPB, 2026.2)
+Data: 12/11/2026 | Local: Online
+Facilitação: Nidlan Hendell (Scrum Master da Release 2)
+Presentes: Nidlan Hendell, Julio Araújo, Rafael
+
+--------------------------------------------------------------------------------
+1. O QUE FUNCIONOU BEM (PONTOS FORTES)
+--------------------------------------------------------------------------------
+- Cumprimento dos principais objetivos planejados para a base do HortiReg:
+  * O processamento de áudio via WhatsApp e a integração com a IA do Gemini foram
+    consolidados com sucesso (US-06), além da confirmação ativa pelo cliente (US-08).
+- Implementação de testes automatizados desde o início (backend e frontend):
+  * A suíte de testes alcançou 75 testes automatizados (100% de sucesso no CI), elevando
+    a cobertura de código para expressivos 93,19% (item Q-01 do Plano de Qualidade).
+- Resolução rápida de impedimentos técnicos críticos:
+  * Destravamento dos PRs retidos na fila do Actions (IMP-02), correção de lint/gitleaks
+    (IMP-03) e resolução segura de conflitos de merge (IMP-04).
+
+--------------------------------------------------------------------------------
+2. O QUE PRECISAMOS MELHORAR (OPORTUNIDADES DE MELHORIA)
+--------------------------------------------------------------------------------
+- Gestão do Tempo:
+  * A equipe precisa gerir melhor o tempo e a distribuição de esforço ao longo da sprint,
+    evitando que a sobrecarga do fechamento de unidade acadêmica (IMP-01) trave totalmente
+    entregas individuais.
+- Comunicação Interna do Time:
+  * Melhorar a frequência e clareza da comunicação diária, alinhando bloqueios com maior
+    antecipação antes que se tornem gargalos na véspera da Review.
+- Qualidade do Fluxo de Entregas (Evitar Acúmulo de PRs):
+  * Evitar a concentração de múltiplos Pull Requests acumulados no final da sprint.
+    A submissão e revisão devem ocorrer de forma contínua para evitar sobrecarga de
+    code review, conflitos de branches paralelas (IMP-04) e aprovações apressadas (IMP-05).
+- Qualidade da Documentação e Rastreabilidade:
+  * Manter a documentação técnica, atas e planilhas vivas sempre sincronizadas com o estado
+    real do repositório, evitando divergências entre arquivos `.txt`, `.md` e cards do Jira (IMP-10).
+- Conclusão das Histórias Assumidas:
+  * Reduzir o débito de histórias planejadas que não foram concluídas ou testadas (US-07 e US-09).
+
+--------------------------------------------------------------------------------
+3. PLANO DE AÇÃO PARA A SPRINT 3
+--------------------------------------------------------------------------------
+| Ação de Melhoria                                      | Responsável   | Prazo      | Card no Jira |
+|-------------------------------------------------------|---------------|:----------:|:------------:|
+| Concluir e testar a US-07 (Itens ambíguos)            | Nidlan Hendell| 17/11/2026 | SCRUM-31     |
+| Implementar a US-09 (Corrigir/cancelar pedido)        | Nidlan Hendell| 22/11/2026 | SCRUM-33     |
+| Executar testes do driver DA-USAB-I3-03 / BUG-03      | Nidlan + Júlio| 19/11/2026 | SCRUM-53     |
+| Limite de 1 PR aberto por membro (evitar lote)        | Toda a equipe | Contínuo   | SCRUM-PROC-01|
+| Revisão obrigatória de PR em até 24h sem bypass       | Toda a equipe | Diário     | SCRUM-PROC-02|
+| Registrar aceite formal do PO em todas as USs         | Julio Araújo  | 13/11/2026 | SCRUM-PROC-03|
+| Atualização tempestiva das atas e documentação        | Nidlan Hendell| Semanal    | SCRUM-PROC-04|
+
+--------------------------------------------------------------------------------
+4. STATUS DAS AÇÕES DA RETROSPECTIVA ANTERIOR (SPRINT 1)
+--------------------------------------------------------------------------------
+- Ação 1 (Cobertura e testes automatizados): Atingida plenamente (93,19%).
+- Ação 2 (Revisão de código em rodízio): Parcial (33% aprovados formalmente; regra reforçada para a S3).
+- Ação 3 (Alimentação de atas no dia da cerimônia): Cumprida no fechamento da Sprint 2.
+================================================================================

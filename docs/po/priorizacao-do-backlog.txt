@@ -1,57 +1,84 @@
 ================================================================================
-                PRIORIZAÇÃO DO PRODUCT BACKLOG - HORTIREG
+        PRODUCT BACKLOG E PLANO DE RELEASE - HORTIREG (SGV-WA)
 ================================================================================
-Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
-Release Vigente: Release 2 - Fluxo Principal e Pedidos (03/11 a 26/11/2026)
-Responsável: Julio Araújo (Product Owner da Release 2)
-Histórico: Versão inicial elaborada por Nidlan Hendell (PO da Release 1)
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+Repositório: https://github.com/Rafaelszc/HortiReg
+Equipe: Julio (PO e DevOps), Nidlan (SM), Rafael (QA) | Data: 12/11/2026 (Versão 1.2)
+Total de Histórias: 22 User Stories | Total de Pontos: 108 Story Points
 
 --------------------------------------------------------------------------------
-1. CRITÉRIOS DE PRIORIZAÇÃO ADOTADOS
+1. EPICS DO PROJETO
 --------------------------------------------------------------------------------
-1. Dependência Técnica e Fundação:
-   A infraestrutura básica, autenticação JWT, modelos de banco e contêineres Docker
-   são pré-requisitos essenciais para qualquer fluxo de negócio subsequente.
-
-2. Valor Essencial de Negócio:
-   O coração do sistema é permitir que produtores/administradores cadastrem produtos e
-   que os clientes registrem pedidos com agilidade.
-
-3. Diferencial Tecnológico e Inclusão (Canais Inteligentes):
-   A integração com WhatsApp e o processamento de áudio via LLM (Gemini) representam
-   o principal valor agregado para produtores rurais e clientes que preferem mensagens de voz.
-
-4. Gestão, Relatórios e Métricas:
-   Painéis consolidados, relatórios gerenciais e métricas de desempenho ficam para as
-   releases finais (R3 e R4) após a estabilização dos fluxos operacionais centrais.
+1. Recepção e Transcrição Inteligente (Áudio/Texto): Cliente envia pedido por texto ou áudio em linguagem natural e o sistema extrai os itens.
+2. Confirmação Automática de Pedido (Human-in-the-loop): Fluxo em duas etapas (resumo, confirmar, corrigir ou cancelar) para evitar pedidos falsos.
+3. Gestão Dinâmica de Catálogo (Modo Admin): Admin cadastra, altera e inativa produtos pelo painel ou WhatsApp.
+4. Relatório Consolidado Diário de Separação: Resumo diário com o total de cada produto a separar, somando todos os pedidos confirmados.
+5. Módulo de Otimização de Rotas de Entrega: Seleção dos pedidos do turno, geocodificação, rota otimizada (TSP) e link do Google Maps.
+6. Fundação Técnica (habilitadora): Pipeline de CI, ambiente Docker e segurança de acesso.
+7. Atributos de Qualidade: Confiabilidade, Disponibilidade e Usabilidade (9 Drivers Arquiteturais).
+8. Risco: Tarefas de tratamento dos riscos da planilha GP_RiscoBaseadoDefeitos (TR-01 a TR-09).
 
 --------------------------------------------------------------------------------
-2. BACKLOG PRIORIZADO POR RELEASES
+2. BACKLOG PRIORIZADO (22 USER STORIES)
 --------------------------------------------------------------------------------
-
-[RELEASE 1 - 06/10 a 29/10/2026 - Concluída]
-- [US-01] Configuração de infraestrutura Docker e pipeline de CI/CD.
-- [US-02] Autenticação de usuários administrativos via JWT com bloqueio de tentativas.
-- [US-03] Cadastro, edição e consulta de produtos no catálogo (Backend + Frontend).
-- [US-04] Interface Web do painel administrativo básico para gerenciamento.
-
-[RELEASE 2 - 03/11 a 26/11/2026 - Em Andamento]
-- [US-05] Integração com webhook do WhatsApp (Evolution API) para recepção de mensagens.
-- [US-06] Processamento de áudio e extração de texto via API Gemini.
-- [US-07] Criação e estruturação automática de pedidos a partir de texto/áudio.
-- [US-08] Consulta e acompanhamento do status do pedido pelo cliente.
-
-[RELEASE 3 - 01/12 a 22/12/2026 - Planejada]
-- [US-09] Notificações em tempo real de mudança de status do pedido para o cliente.
-- [US-10] Gestão avançada de estoque e baixa automática pós-pedido.
-- [US-11] Tratamento robusto de mensagens fora de padrão e contingência de falhas na IA.
-
-[RELEASE 4 - 02/02 a 18/02/2027 - Planejada]
-- [US-12] Relatórios consolidados de vendas por produtor e produto.
-- [US-13] Exportação de dados e painel gerencial de métricas para Demo Day.
+| Ordem | ID    | EPIC                                                 | Título da História                            | Rel | Sprint | Prio  | SP | Responsável   |
+|:-----:|:-----:|:-----------------------------------------------------|:-----------------------------------------------|:---:|:------:|:-----:|:--:|:--------------|
+| 1     | US-01 | Fundação Técnica (habilitadora)                      | Pipeline de CI e ambiente de desenvolvimento  | R1  | 1      | Alta  | 3  | Rafael        |
+| 2     | US-02 | Gestão Dinâmica de Catálogo (Modo Admin)             | Acesso seguro do administrador                 | R1  | 1      | Alta  | 5  | Rafael        |
+| 3     | US-03 | Gestão Dinâmica de Catálogo (Modo Admin)             | Cadastrar produto no catálogo                  | R1  | 1      | Alta  | 3  | Nidlan        |
+| 4     | US-04 | Gestão Dinâmica de Catálogo (Modo Admin)             | Alterar preço e inativar produto               | R1  | 1      | Alta  | 2  | Nidlan        |
+| 5     | US-05 | Recepção e Transcrição Inteligente (Áudio/Texto)     | Pedido por texto com resumo estruturado        | R1  | 1      | Alta  | 8  | Júlio         |
+| 6     | US-06 | Recepção e Transcrição Inteligente (Áudio/Texto)     | Pedido por áudio                               | R2  | 2      | Alta  | 8  | Júlio         | (Entregue no CI, aguarda aceite PO) |
+| 7     | US-07 | Recepção e Transcrição Inteligente (Áudio/Texto)     | Itens ambíguos ou inexistentes                 | R2  | 2 -> 3 | Alta  | 5  | Nidlan        | (Pendente: não testada; volta à S3) |
+| 8     | US-08 | Confirmação Automática de Pedido (Human-in-the-loop) | Confirmação do pedido pelo cliente             | R2  | 2      | Alta  | 5  | Rafael        | (Entregue no CI, aguarda aceite PO) |
+| 9     | US-09 | Confirmação Automática de Pedido (Human-in-the-loop) | Corrigir ou cancelar pedido                    | R2  | 3      | Média | 5  | Nidlan        | (Pendente: não feita na S2; fica S3) |
+| 10    | US-10 | Confirmação Automática de Pedido (Human-in-the-loop) | Expiração de pedido não confirmado             | R2  | 3 -> 2 | Média | 3  | Rafael        | (Antecipada e entregue no CI)       |
+| 11    | US-11 | Confirmação Automática de Pedido (Human-in-the-loop) | Endereço de entrega do cliente                 | R2  | 3      | Alta  | 5  | Júlio         |
+| 12    | US-12 | Relatório Consolidado Diário de Separação            | Pedidos confirmados do dia no painel           | R2  | 3      | Alta  | 5  | Rafael        |
+| 13    | US-13 | Relatório Consolidado Diário de Separação            | Relatório consolidado de separação             | R3  | 4      | Alta  | 8  | Júlio         |
+| 14    | US-14 | Relatório Consolidado Diário de Separação            | Exportar ou enviar o relatório                 | R3  | 5      | Baixa | 3  | Júlio         |
+| 15    | US-15 | Confirmação Automática de Pedido (Human-in-the-loop) | Notificações de status ao cliente              | R3  | 4      | Média | 5  | Rafael        |
+| 16    | US-16 | Módulo de Otimização de Rotas de Entrega             | Selecionar pedidos do turno de entrega         | R3  | 4      | Alta  | 5  | Nidlan        |
+| 17    | US-17 | Módulo de Otimização de Rotas de Entrega             | Geocodificação e validação de endereços        | R3  | 5      | Alta  | 5  | Rafael        |
+| 18    | US-18 | Gestão Dinâmica de Catálogo (Modo Admin)             | Catálogo por WhatsApp (texto e áudio)          | R3  | 5      | Média | 8  | Júlio         |
+| 19    | US-19 | Módulo de Otimização de Rotas de Entrega             | Rota otimizada do turno (TSP)                  | R4  | 6      | Alta  | 8  | Nidlan        |
+| 20    | US-20 | Módulo de Otimização de Rotas de Entrega             | Link da rota no Google Maps                    | R4  | 6      | Alta  | 3  | Nidlan        |
+| 21    | US-21 | Confirmação Automática de Pedido (Human-in-the-loop) | Registrar entrega concluída                    | R4  | 7      | Média | 3  | Rafael        |
+| 22    | US-22 | Relatório Consolidado Diário de Separação            | Histórico de pedidos                           | R4  | 7      | Baixa | 3  | Júlio         |
 
 --------------------------------------------------------------------------------
-[MAPEAMENTO / PENDÊNCIAS]:
-- [ ] Vincular cada User Story à chave oficial correspondente no Jira do projeto HortiReg.
-- [ ] Atualizar pontos de história e critérios de priorização conforme refinamento do time.
+3. DISTRIBUIÇÃO POR RELEASES E SPRINTS
+--------------------------------------------------------------------------------
+- Release 1 (Sprints 0 e 1): US-01 a US-05 (21 Story Points) - Fundação, catálogo e primeiro pedido por texto.
+- Release 2 (Sprints 2 e 3): US-06 a US-12 (36 Story Points) - Áudio, ambiguidade, confirmação, expiração, endereço e pedidos do dia.
+- Release 3 (Sprints 4 e 5): US-13 a US-18 (34 Story Points) - Separação, notificações, seleção de turno, geocodificação e catálogo via WPP.
+- Release 4 (Sprints 6 e 7): US-19 a US-22 (17 Story Points) - Rota otimizada TSP, link Maps, registro de entrega e demo day.
+
+--------------------------------------------------------------------------------
+4. OS 9 DRIVERS ARQUITETURAIS
+--------------------------------------------------------------------------------
+| ID             | Atributo       | Resp.   | Título / Meta                                                                  | Release |
+|:---------------|:---------------|:-------:|:-------------------------------------------------------------------------------|:-------:|
+| DA-CONF-I1-01  | Confiabilidade | Nidlan  | Extração em áudio com linguagem regional (≥ 90% acerto em 50 áudios; 0 fora)   | R2      |
+| DA-DISP-I1-02  | Disponibilidade| Nidlan  | Atendimento no pico antes da feira (50 pedidos em 10 min, 0 perdas, 95% em 10s)| R3      |
+| DA-USAB-I1-03  | Usabilidade    | Nidlan  | 1º pedido do cliente novo sem instrução (≥ 9 de 10 concluem em ≤ 3 min)        | R2      |
+| DA-CONF-I2-01  | Confiabilidade | Rafael  | Mensagens duplicadas não geram pedidos duplicados (1.000 msgs, 20% reenvio = 0)| R1      |
+| DA-DISP-I2-02  | Disponibilidade| Rafael  | Deploy sem indisponibilidade e com rollback (queda ≤ 60s, rollback ≤ 2 min)   | R2      |
+| DA-USAB-I2-03  | Usabilidade    | Rafael  | Atualizar preço no painel com poucos cliques (≤ 30s, ≤ 3 cliques, nota ≥ 4)    | R1      |
+| DA-CONF-I3-01  | Confiabilidade | Júlio   | Falha da API de IA sem perda de pedidos (0 perdas em 30 min, reprocessa ≤ 5m)  | R2      |
+| DA-DISP-I3-02  | Disponibilidade| Júlio   | Detecção e recuperação de queda do WhatsApp (detecção ≤ 2m, alerta ≤ 5m)       | R3      |
+| DA-USAB-I3-03  | Usabilidade    | Júlio   | Mensagens de erro compreensíveis (100% fluxos tratados, 0 silêncio)            | R2      |
+
+--------------------------------------------------------------------------------
+5. TAREFAS DOS RISCOS NO JIRA (TR-01 A TR-09)
+--------------------------------------------------------------------------------
+- TR-01 (RK-01 / Nidlan): Cadastrar apelidos no catálogo (US-03), desambiguação (US-07) e golden set de 50 áudios (DA-CONF-I1-01).
+- TR-02 (RK-02 / Rafael): Idempotência por message_id no banco e teste de 1.000 mensagens no webhook (DA-CONF-I2-01).
+- TR-03 (RK-03 / Júlio): Gravar mensagem ao receber, fila de retentativa e aviso ao cliente (DA-CONF-I3-01 / BUG-03 / SCRUM-53).
+- TR-04 (RK-04 / Nidlan): Fila assíncrona, controle de concorrência e teste de carga k6 (DA-DISP-I1-02).
+- TR-05 (RK-05 / Rafael): Pipeline de deploy automatizado com healthcheck e rollback ensaiado (DA-DISP-I2-02).
+- TR-06 (RK-06 / Júlio): Healthcheck da sessão a cada 1 min, reconexão automática e contingência (DA-DISP-I3-02).
+- TR-07 (RK-07 / Nidlan): Resumo paginado com total de itens e conferência automática (DA-USAB-I1-03).
+- TR-08 (RK-08 / Rafael): Busca e edição direta de preço no painel web (DA-USAB-I2-03).
+- TR-09 (RK-09 / Júlio): Catálogo de mensagens de erro claras e cenários @excecao automatizados (DA-USAB-I3-03).
 ================================================================================

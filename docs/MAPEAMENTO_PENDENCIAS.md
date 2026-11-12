@@ -1,76 +1,52 @@
-# Mapeamento de Estrutura e Pendências - HortiReg
+# Mapeamento Consolidado de Estrutura e Pendências - HortiReg (SGV-WA)
 
-Este documento consolida o mapeamento de toda a estrutura documental do projeto **HortiReg**, indicando o que já foi configurado e o que resta pendente para modificação ou adição pela equipe.
-
----
-
-## 1. O que foi Configurado e Padronizado
-
-### 📁 Pasta `docs/sm/` (Scrum Master)
-- **`acordos-de-trabalho.txt`**:
-  - Nomes atualizados: **Nidlan Hendell**, **Rafael** e **Julio Araújo**.
-  - **Nidlan Hendell** definido como Scrum Master da Release 2.
-  - Pontos 1 a 4 mantidos e reestilizados com layout limpo e padronizado.
-  - **Ponto 5 (Matriz de Papéis por Release):**
-    - **R1:** Nidlan (PO), Rafael (DevOps e SM), Julio (QA).
-    - **R2:** Nidlan (SM), Julio (PO e DevOps), Rafael (QA).
-    - **R3:** Rafael (PO e DevOps), Julio (SM), Nidlan (QA).
-    - **R4:** Nidlan (PO e DevOps), Rafael (SM), Julio (QA).
-    - *Regra atendida: PO e DevOps mantidos juntos da R2 em diante e todos atuam como Dev Team.*
-  - **Ponto 6 (Termo de Acordo):** Registrado com a concordância dos três membros.
-  - **`secao-README-papeis.txt`**: Snippet em Markdown pronto para integração com a documentação geral do repositório.
-- **`calendario-cerimonias.txt`**:
-  - Dados pessoais e referências a projetos antigos removidos.
-  - Estilo reestruturado em tabela moderna com todos os horários e cerimônias propostos mantidos.
-- **Arquivos omitidos (conforme solicitação):**
-  - `registro-de-impedimentos.txt` e `registro-de-riscos.txt` **não foram implementados** neste momento (ficarão para uma etapa posterior).
-
-### 📁 Pasta `docs/sm/sprints/sprint-1/`
-- **`registro-dailies.txt`**:
-  - Inclusão das dailies solicitadas com presença de toda a equipe (Nidlan Hendell, Rafael, Julio Araújo):
-    - **03/11/2026**: Pauta centrada na **Correção das pendências**.
-    - **05/11/2026**: Pauta de **Acompanhamento de cada um** (status individual).
-  - Rastreabilidade com o impedimento IMP-01 (sobrecarga externa do período avaliativo).
-- **`registro-de-impedimentos.txt`**:
-  - Implementado formalmente dentro da pasta da sprint registrando o **IMP-01** (restrição de capacidade temporária entre 02/11 e 12/11 devido ao encerramento de unidade acadêmica), com causas, impactos na velocidade e ações de contorno do Scrum Master e time.
-- **Atas e métricas:**
-  - `ata-planning.txt`: Adaptada para o contexto da stack HortiReg.
-  - `ata-review.txt`: Registro de demonstração e aceite com o PO.
-  - `ata-retrospectiva.txt`: Pontos fortes, pontos a melhorar e plano de ação.
-  - `metricas.txt`: Template de indicadores de esforço, velocidade e taxas de sucesso.
-
-### 📁 Outras Pastas do Projeto (`arquitetura/`, `po/`, `qa/`, `releases/`)
-- **`docs/arquitetura/descricao_projetoArquitetural.txt`**: Atualizado para a arquitetura real do HortiReg (FastAPI, React Vite, PostgreSQL, Evolution API WhatsApp, Google Gemini LLM).
-- **`docs/po/definition-of-done.txt`**: Critérios em nível de história e release adaptados para a equipe.
-- **`docs/po/priorizacao-do-backlog.txt`**: Histórias prioritárias alinhadas às releases do HortiReg.
-- **`docs/po/release-notes/v0.1.0.txt`**: Notas da versão v0.1.0 (Release 1).
-- **`docs/qa/README.md`**: Matriz de documentos de garantia da qualidade.
-- **`docs/qa/Bugs_Sprint1_HortiReg.txt`**: Registro estruturado dos defeitos encontrados e corrigidos na R1.
-- **`docs/qa/Casos_de_Teste_Sprint1_HortiReg.txt`**: Casos de teste funcionais e de aceitação para auth e catálogo.
-- **`docs/releases/Relatorio_de_Qualidade_R1_HortiReg.txt`**: Relatório executivo de conformidade da Release 1.
+Documento atualizado em **12/11/2026** refletindo as auditorias de qualidade, métricas reais das Sprints 1 e 2, catálogo de 22 User Stories e registro consolidado de impedimentos e riscos.
 
 ---
 
-## 2. O que Falta Modificar e Adicionar (Checklist de Pendências)
+## 1. Status Geral das Pastas e Artefatos
 
-### 📌 1. Arquitetura (`docs/arquitetura/`)
-- [ ] **Imagem do Diagrama Arquitetural:** Gerar e salvar a imagem `hortireg_projetoArquitetural.png` no diretório.
-- [ ] **Refinamento de Integrações:** Descrever o tratamento de falhas em caso de indisponibilidade da API do Gemini ou da Evolution API.
+### 📁 `docs/arquitetura/`
+- [x] **`descricao_projetoArquitetural.txt`**: Documentado com a arquitetura completa da solução (FastAPI, React Vite, Evolution API, PostgreSQL 16, Gemini LLM).
+- [x] **Diagrama Arquitetural (Mermaid)**: Inserido diretamente no arquivo de descrição e disponível para visualização gráfica, com detalhamento de todos os fluxos de mensagens, webhooks, autenticação e banco de dados.
 
-### 📌 2. Product Owner (`docs/po/`)
-- [ ] **Chaves do Jira:** Substituir chaves de exemplo (`HORTI-xx`) pelas chaves reais configuradas no Jira da equipe.
-- [ ] **Link da Planilha de DoD:** Caso usem o Google Sheets para a Definition of Done, atualizar o link no arquivo `definition-of-done.txt`.
-- [ ] **Backlog da Release 2:** Detalhar as histórias da R2 no Jira (webhooks WhatsApp e processamento de áudio).
+### 📁 `docs/po/` (Product Owner)
+- [x] **`priorizacao-do-backlog.txt`**: Atualizado com o catálogo completo de **22 User Stories (108 Story Points)** distribuídas em 4 Releases (R1: 21 SP, R2: 36 SP, R3: 34 SP, R4: 17 SP), incluindo os 9 Drivers Arquiteturais e as 9 tarefas de risco (TR-01 a TR-09).
+- [x] **`definition-of-done.txt`**: Atualizado com os critérios acordados no nível de Sprint e Release, identificando responsáveis (QA verifica, PO aceita, SM mantém) e critérios técnicos específicos do projeto.
+- [x] **`release-notes/v0.1.0.txt`**: Publicado com os marcos da Release 1.
 
-### 📌 3. Qualidade (`docs/qa/`)
-- [ ] **Planilhas e Documentos Vivos:** Adicionar/preencher os arquivos binários do pacote de qualidade:
-  - `Plano_de_Qualidade v1.1.xlsx`
-  - `Plano-de-Teste_v1.1.docx`
-  - `GP_RiscoBaseadoDefeitos.xlsx`
-- [ ] **Casos de Teste da Sprint 2:** Adicionar os cenários de teste para as novas features (processamento de áudio e pedidos).
+### 📁 `docs/qa/` (Qualidade)
+- [x] **`README.md`**: Matriz de documentos do plano de qualidade.
+- [x] **`Bugs_Sprint1_HortiReg.txt`**: Auditoria corrigida (IMP-10 resolvido): registra que a R1 não possuía o tipo Bug no Jira e documenta os 5 bugs identificados na Sprint 2 (SCRUM-71 a SCRUM-75), com 4 corrigidos e apenas 1 médio aberto (BUG-03 mitigado na SCRUM-53).
+- [x] **`Casos_de_Teste_Sprint1_HortiReg.txt`**: Matriz com os **61 casos de teste (CT-01 a CT-61)**, indicando quais já passam no CI (75 testes automatizados com 93,19% de cobertura) e guia passo a passo para implementar os pendentes.
 
-### 📌 4. Scrum Master e Sprints (`docs/sm/`)
-- [ ] **Arquivos Posteriores de Riscos e Impedimentos:** Criar `registro-de-impedimentos.txt` e `registro-de-riscos.txt` quando for definido o momento.
-- [ ] **Gráfico Burndown da Sprint 1:** Exportar o gráfico do Jira e salvar como `docs/sm/sprints/sprint-1/burndown-sprint-1.png`.
-- [ ] **Sprint 2:** Criar pasta `docs/sm/sprints/sprint-2/` e adicionar as atas de Planning, Review e Retrospectiva da Sprint 2 conforme ocorram.
-- [ ] **Métricas Reais:** Preencher em `metricas.txt` a quantidade exata de PRs e execuções de CI registradas no GitHub Actions.
+### 📁 `docs/sm/` (Scrum Master)
+- [x] **`acordos-de-trabalho.txt`**: Papéis definidos para R1 a R4 (PO e DevOps juntos da R2 em diante).
+- [x] **`calendario-cerimonias.txt`**: Cronograma alinhado ao semestre acadêmico 2026.2.
+- [x] **`registro-de-riscos.txt`**: Implementado com os **9 Riscos (RK-01 a RK-09)**, drivers associados, probabilidade, impacto, estratégias e tarefas no Jira (TR-01 a TR-09).
+- [x] **`sprints/sprint-1/`**:
+  * `ata-planning.txt`, `ata-review.txt`, `ata-retrospectiva.txt`, `metricas.txt`, `registro-dailies.txt`.
+- [x] **`sprints/sprint-2/`**:
+  * `ata-review.txt`: Registro da Review com itens demonstrados (US-06, US-08, US-10) e itens pendentes de Nidlan (US-07 não testada, US-09 não feita, DA-USAB-I3-03 não diretamente executado).
+  * `ata-retrospectiva.txt`: Retrospectiva registrando pontos positivos (objetivos base e testes automatizados) e melhorias (gestão do tempo, comunicação, qualidade evitando acúmulo de PRs e documentação).
+  * `metricas.txt`: Preenchido com dados medidos em 12/11/2026 (18 SP planejados, 16 entregues em CI, 5 pendentes na US-07).
+  * `registro-de-impedimentos.txt`: Consolidado com os **11 impedimentos** (IMP-01 a IMP-11: 3 resolvidos, 3 parciais, 5 abertos).
+
+---
+
+## 2. Checklist do que Falta Fazer / Próximas Ações
+
+1. **Jira e Governança:**
+   - [ ] Registrar o aceite formal do PO (Julio) nas US-06, US-08, US-10 e RK-02 para permitir a transição para Done (IMP-09).
+   - [ ] Cadastrar os bugs BUG-02, BUG-03, BUG-04 e BUG-05 como issues do tipo Bug no Jira (IMP-06).
+
+2. **Ambiente e DevOps:**
+   - [ ] Subir ambiente de homologação acessível para viabilizar testes reais de WhatsApp e deploy/rollback (IMP-07 / Q-09 / Q-10).
+   - [ ] Ajustar as regras de proteção de branch para remover o bypass e exigir aprovação formal de PRs (IMP-05 / Q-04).
+
+3. **Golden Set da IA:**
+   - [ ] Gravar e disponibilizar o conjunto de 50 áudios com expressões regionais (SCRUM-47) para medir a precisão ≥ 90% da LLM (IMP-08 / Q-06 / DA-CONF-I1-01).
+
+4. **Usabilidade:**
+   - [ ] Agendar e executar a sessão de teste de usabilidade com 5 a 10 participantes (IMP-11 / Q-11 / DA-USAB-I1-03).
+================================================================================

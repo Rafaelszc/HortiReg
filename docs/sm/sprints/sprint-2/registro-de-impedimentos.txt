@@ -1,0 +1,96 @@
+================================================================================
+        REGISTRO DE IMPEDIMENTOS - SPRINT 2 / RELEASE 2 - HORTIREG
+================================================================================
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+Reportado por: Rafael (QA) | Facilitação: Nidlan Hendell (Scrum Master da R2)
+Data da última auditoria: 12/11/2026
+
+--------------------------------------------------------------------------------
+1. LISTAGEM DETALHADA DOS IMPEDIMENTOS
+--------------------------------------------------------------------------------
+
+ID: IMP-01
+Impedimento: Restrição temporária de capacidade da equipe (Capacity Drop) por encerramento de unidade acadêmica
+Aberto em: 03/11/2026 | Previsão: 12/11/2026
+Impacto: Sobrecarga com avaliações em outras disciplinas gerando atraso e redução na velocidade diária
+Dono da remoção: SM (Nidlan) + Equipe
+Situação: Em monitoramento contínuo; normalização do ritmo prevista para 12/11/2026
+────────────────────────────────────────
+ID: IMP-02
+Impedimento: CI travado: runs dos PRs #13 a #17 ficaram em queued sem nenhum job no GitHub Actions
+Aberto em: 11/11 20:24
+Impacto: ~5 h sem validar 5 PRs; revisão e merge parados
+Dono da remoção: DevOps
+Situação: Resolvido em 12/11 (fechar e reabrir os PRs gerou runs novos, todos verdes)
+────────────────────────────────────────
+ID: IMP-03
+Impedimento: CI vermelho no PR #18 (US-06): gitleaks (generic-api-key em backend/README.md:164) e ruff (F401 em tests/test_pedido.py)
+Aberto em: 11/11
+Impacto: US-06 sem poder ser mesclada; 8 casos de teste bloqueados
+Dono da remoção: Autor do PR (Julio)
+Situação: Resolvido em 12/11 (placeholder no README, .gitleaksignore, import removido)
+────────────────────────────────────────
+ID: IMP-04
+Impedimento: Conflitos de merge: #16 (pytest.ini) e #18 (.env.example, config.py, webhook.py, pytest.ini), por branches paralelas mexendo nos mesmos arquivos
+Aberto em: 12/11
+Impacto: Merge atrasado; risco de perder o token do webhook ao juntar
+Dono da remoção: Autores dos PRs
+Situação: Resolvido em 12/11 (os dois lados mantidos, CI 8/8)
+────────────────────────────────────────
+ID: IMP-05
+Impedimento: Proteção de branch ausente e depois mal configurada (ruleset com alvo em tag, histórico linear bloqueando merge commit). Hoje há um bypass ativo
+Aberto em: 11/11
+Impacto: Merges sem aprovação. Na Sprint 2: #18, #19 e #20 aprovados; #13 a #17 só com comentário; #21 sem review
+Dono da remoção: DevOps + SM
+Situação: Parcial: regra corrigida em 12/11; falta deixar o bypass só para emergência e fazer valer "aprovação" (não "comentário")
+────────────────────────────────────────
+ID: IMP-06
+Impedimento: Jira sem o tipo Bug
+Aberto em: R1 (feedback)
+Impacto: Bugs só no relatório, sem rastreio no board
+Dono da remoção: SM / admin do Jira
+Situação: Parcial: tipo criado em 12/11, BUG-01 registrado (SCRUM-71); faltam BUG-02 a BUG-05
+────────────────────────────────────────
+ID: IMP-07
+Impedimento: Sem ambiente de homologação
+Aberto em: R1
+Impacto: Bloqueia homologação da US-06 (nota de voz real), teste com WhatsApp real, Q-09 (disponibilidade) e Q-10 (deploy e rollback, SCRUM-51)
+Dono da remoção: DevOps (Julio)
+Situação: Aberto
+────────────────────────────────────────
+ID: IMP-08
+Impedimento: Falta o conjunto de 50 áudios de referência
+Aberto em: R1
+Impacto: Q-06 (precisão da IA ≥ 90%) não pode ser medido; DA SCRUM-47 parado
+Dono da remoção: PO (Julio)
+Situação: Aberto
+────────────────────────────────────────
+ID: IMP-09
+Impedimento: Sem aceite do PO registrado nas US
+Aberto em: R1 (feedback)
+Impacto: US-06, US-08, US-10 e RK-02 mescladas, mas não podem ir para Done pela DoD
+Dono da remoção: PO (Julio); SM testemunha o aceite da US-06, que é do próprio PO
+Situação: Aberto
+────────────────────────────────────────
+ID: IMP-10
+Impedimento: Documentação duplicada e inconsistente: docs/sm/*.txt × docs/*.md (acordos, atas, DoD); docs/qa/Bugs_Sprint1_HortiReg.txt descreve bugs da R1 sem evidência no código e usa IDs que colidem com os da R2
+Aberto em: 12/11
+Impacto: Relatório de qualidade e DoD apontam para fontes diferentes; risco de reportar bug inexistente
+Dono da remoção: SM + equipe
+Situação: Aberto: decidir a estrutura única e corrigir o arquivo de bugs da R1 (Arquivo corrigido em 12/11 em docs/qa/)
+────────────────────────────────────────
+ID: IMP-11
+Impedimento: Sessão de usabilidade (5 a 10 pessoas) sem data
+Aberto em: R1
+Impacto: Q-11 não medido
+Dono da remoção: SM agenda, QA conduz
+Situação: Aberto
+
+--------------------------------------------------------------------------------
+2. RESUMO EXECUTIVO
+--------------------------------------------------------------------------------
+- Total de Impedimentos Registrados: 11
+- Resolvidos: 3 (IMP-02, IMP-03, IMP-04)
+- Parciais: 3 (IMP-01, IMP-05, IMP-06)
+- Abertos: 5 (IMP-07, IMP-08, IMP-09, IMP-10, IMP-11)
+================================================================================

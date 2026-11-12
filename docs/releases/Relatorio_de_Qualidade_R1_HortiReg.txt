@@ -1,0 +1,51 @@
+================================================================================
+            RELATÓRIO DE QUALIDADE - RELEASE 1 - HORTIREG
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+Data de Emissão: 29/10/2026
+Responsável Técnico: Julio Araújo (QA da Release 1)
+Validação: Nidlan Hendell (PO da R1) e Rafael (DevOps e SM da R1)
+
+--------------------------------------------------------------------------------
+1. SUMÁRIO EXECUTIVO DA QUALIDADE
+--------------------------------------------------------------------------------
+A Release 1 atingiu os critérios de qualidade estabelecidos na Definition of Done.
+O sistema conta com suíte de testes unitários, testes de integração de API e testes
+de ponta a ponta (E2E) no frontend, executados automaticamente em ambiente de CI.
+
+Indicadores-Chave:
+- Taxa de sucesso dos testes automatizados: 100%
+- Densidade de defeitos críticos residuais: 0
+- Cobertura de testes nos módulos principais: > 80%
+- Pipeline de integração contínua (GitHub Actions): Verde
+
+--------------------------------------------------------------------------------
+2. RESULTADOS DA EXECUÇÃO DE TESTES
+--------------------------------------------------------------------------------
+- Testes de Backend (FastAPI + Pytest):
+  * Módulo de Autenticação (`test_login.py`, `test_auth_unidade.py`): Aprovado
+  * Módulo de Produtos (`test_produtos.py`, `test_catalogo.py`): Aprovado
+  * Módulo de Healthcheck (`test_health.py`): Aprovado
+
+- Testes de Frontend (Cypress BDD):
+  * Fluxo de autenticação (`login.feature`): Aprovado
+  * Fluxo de gerenciamento de produtos (`produtos.feature`): Aprovado
+
+--------------------------------------------------------------------------------
+3. GESTÃO DE DEFEITOS
+--------------------------------------------------------------------------------
+- Total de bugs reportados: 2
+- Total de bugs solucionados antes da entrega: 2
+- Total de bugs em aberto: 0
+
+--------------------------------------------------------------------------------
+4. RECOMENDAÇÕES PARA A RELEASE 2
+--------------------------------------------------------------------------------
+- Manter a prática de TDD/BDD para os fluxos da Evolution API e integração com Gemini.
+- Assegurar testes de carga e resiliência na recepção concorrente de webhooks do WhatsApp.
+- Transição da função de QA da Release 2 para Rafael.
+
+--------------------------------------------------------------------------------
+[MAPEAMENTO / PENDÊNCIAS]:
+- [ ] Anexar métricas detalhadas de cobertura geradas pelo pytest-cov / codecov.
+================================================================================

@@ -1,0 +1,50 @@
+================================================================================
+                    BUGS ENCONTRADOS - SPRINT 1 - HORTIREG
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+QA Responsável (R1): Julio Araújo
+Data: 29/10/2026 (Fechamento da Release 1 / Sprint 1)
+
+Resumo:
+- Bugs identificados: 2
+- Bugs corrigidos e retestados: 2
+- Bugs em aberto: 0
+
+--------------------------------------------------------------------------------
+REGISTRO DETALHADO DOS BUGS
+--------------------------------------------------------------------------------
+
+[BUG-01]
+TÍTULO: Falha de CORS ao autenticar via Frontend local
+ID: BUG-01
+CHAVE NO JIRA: [A PREENCHER / HORTI-BUG-01]
+RELEASE: R1
+SPRINT: 1
+SEVERIDADE: Alta
+PRIORIDADE: Alta
+REPORTADO POR: Julio Araújo (QA)
+RESPONSÁVEL PELA CORREÇÃO: Rafael (DevOps)
+DESCRIÇÃO: Ao submeter o formulário de login a partir do Vite (porta 5173 / 8081),
+a requisição para a API FastAPI (porta 8000) era bloqueada devido à ausência das
+origens locais configuradas no CORSMiddleware do FastAPI.
+STATUS: Corrigido e retestado com sucesso.
+
+--------------------------------------------------------------------------------
+[BUG-02]
+TÍTULO: Erro 500 ao cadastrar produto com preço negativo ou zero
+ID: BUG-02
+CHAVE NO JIRA: [A PREENCHER / HORTI-BUG-02]
+RELEASE: R1
+SPRINT: 1
+SEVERIDADE: Média
+PRIORIDADE: Alta
+REPORTADO POR: Julio Araújo (QA)
+RESPONSÁVEL PELA CORREÇÃO: Nidlan Hendell (PO/Dev)
+DESCRIÇÃO: O schema Pydantic de entrada permitia valores `<= 0` para o campo `preco`,
+gerando exceção no banco de dados em vez de retornar validação HTTP 422 Unprocessable Entity.
+STATUS: Corrigido com inclusão de validator Pydantic (`gt=0`) e retestado.
+
+--------------------------------------------------------------------------------
+[MAPEAMENTO / PENDÊNCIAS]:
+- Vincular números de chamados definitivos do Jira após alinhamento do board.
+================================================================================

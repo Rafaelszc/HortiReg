@@ -1,0 +1,42 @@
+================================================================================
+                REGISTRO DE IMPEDIMENTOS DA SPRINT - HORTIREG
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+Responsável pelo registro: Nidlan Hendell (Scrum Master da Release 2)
+Período de Acompanhamento: 02/11/2026 a 12/11/2026
+
+--------------------------------------------------------------------------------
+1. IMPEDIMENTOS IDENTIFICADOS
+--------------------------------------------------------------------------------
+
+[IMP-01]
+ID DO IMPEDIMENTO: IMP-01
+DATA DE REGISTRO: 03/11/2026
+DATA DE RESOLUÇÃO / PREVISÃO: 12/11/2026
+TIPO: Fator Externo / Restrição Temporária de Capacidade da Equipe (Capacity Drop)
+SEVERIDADE: Alta
+IMPACTO: Atraso no ritmo planejado de desenvolvimento da sprint e redução da velocidade.
+RESPONSÁVEL PELA GESTÃO: Nidlan Hendell (Scrum Master)
+
+DESCRIÇÃO DETALHADA:
+Durante o período de 02/11 a 12/11/2026, coincidiu o encerramento da unidade acadêmica
+com acúmulo de provas, trabalhos práticos e pendências avaliativas em outras disciplinas
+cursadas simultaneamente pelos membros do time (Nidlan Hendell, Rafael e Julio Araújo).
+Essa sobrecarga externa reduziu a disponibilidade de horas dedicadas ao desenvolvimento
+ativo do projeto HortiReg, gerando atraso nas tarefas do backlog.
+
+AÇÕES DE MITIGAÇÃO / CONTORNO ADOTADAS PELO SM E TIME:
+1. Alinhamento de prioridades na Daily de 03/11/2026: foco concentrado exclusivamente
+   na correção de pendências técnicas críticas e estabilização de débitos técnicos,
+   evitando abertura de novas frentes paralelas complexas.
+2. Acompanhamento diário contínuo na Daily de 05/11/2026: monitoramento do tempo
+   disponível de cada membro e redistribuição flexível de atividades.
+3. Alinhamento com o Product Owner (Julio Araújo) para preservação do escopo nuclear
+   e absorção do ritmo de entrega nas sprints subsequentes (Sprint 3 em diante) após o
+   encerramento das avaliações acadêmicas.
+
+SITUAÇÃO ATUAL:
+Em monitoramento ativo. Resolução e reestabelecimento da capacidade plena previstos
+a partir de 12/11/2026.
+
+================================================================================

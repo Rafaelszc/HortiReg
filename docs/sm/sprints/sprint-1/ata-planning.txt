@@ -1,0 +1,63 @@
+================================================================================
+                    ATA DA SPRINT PLANNING - SPRINT 1
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+Data: 20/10/2026 | Horário: 20:00h às 21:00h | Local: Sala de aula / Online
+Facilitação: Rafael (Scrum Master da R1)
+Product Owner: Nidlan Hendell
+QA: Julio Araújo
+Presentes: Nidlan Hendell, Rafael, Julio Araújo
+Período da Sprint: 20/10/2026 a 29/10/2026
+
+--------------------------------------------------------------------------------
+1. PAUTA
+--------------------------------------------------------------------------------
+- Definição da capacidade do time de desenvolvimento
+- Apresentação das histórias pelo PO por ordem de prioridade
+- Estimativa de esforço (Story Points) e atribuição de responsáveis
+- Apresentação do plano e estratégia de testes da sprint (QA)
+- Alinhamento da Definition of Done (DoD) e Definition of Ready (DoR)
+- Mapeamento inicial de riscos técnicos e de processo
+- Definição do Sprint Goal
+
+--------------------------------------------------------------------------------
+2. SPRINT GOAL (OBJETIVO DA SPRINT)
+--------------------------------------------------------------------------------
+[MAPEAMENTO / A PREENCHER - HORTIREG]:
+Estabelecer a infraestrutura base do sistema HortiReg, autenticação de usuários,
+estrutura da API FastAPI, painel administrativo React e integração inicial de produtos/pedidos.
+
+--------------------------------------------------------------------------------
+3. SPRINT BACKLOG - HISTÓRIAS SELECIONADAS
+--------------------------------------------------------------------------------
+[MAPEAMENTO DE TAREFAS / CHAVES NO JIRA]:
+| Chave      | História / Atividade                                | Pontos | Responsável   |
+|------------|-----------------------------------------------------|:------:|---------------|
+| HORTI-01   | Configuração do ambiente base, Docker e CI/CD       | 5      | Rafael        |
+| HORTI-02   | Autenticação, modelo de usuários e segurança JWT    | 5      | Rafael        |
+| HORTI-03   | Cadastro, listagem e persistência de produtos       | 5      | Julio Araújo  |
+| HORTI-04   | Interface do Painel Administrativo Web (React)      | 5      | Nidlan Hendell|
+
+Capacidade Total Planejada: ~20 story points.
+
+--------------------------------------------------------------------------------
+4. DEPENDÊNCIAS IDENTIFICADAS
+--------------------------------------------------------------------------------
+- Ambiente local e contêineres Docker configurados para subir backend e frontend.
+- Definição do schema do banco PostgreSQL (tabelas de usuário, produto, pedido).
+- Configuração das variáveis de ambiente (`.env.example`) sem vazar credenciais.
+
+--------------------------------------------------------------------------------
+5. QUALIDADE E CRITÉRIOS DE ACEITE
+--------------------------------------------------------------------------------
+- O QA (Julio Araújo) definiu a estratégia com testes automatizados (pytest e Cypress).
+- Todo PR deve passar obrigatoriamente pela validação do pipeline de CI.
+
+--------------------------------------------------------------------------------
+6. PENDÊNCIAS A SEREM REVISADAS / ADICIONADAS
+--------------------------------------------------------------------------------
+[PENDÊNCIAS DO TIME]:
+- [ ] Confirmar chaves exatas do projeto HortiReg no Jira.
+- [ ] Validar pontuação final e estimativas com o time de desenvolvimento.
+- [ ] Atualizar o Sprint Goal caso haja ajuste de escopo na R1.
+================================================================================

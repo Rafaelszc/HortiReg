@@ -1,0 +1,43 @@
+================================================================================
+                    ATA DA SPRINT REVIEW - SPRINT 1
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+Data: 29/10/2026
+Facilitação: Rafael (Scrum Master da R1)
+Presentes: Nidlan Hendell (PO), Rafael (SM e DevOps), Julio Araújo (QA)
+
+--------------------------------------------------------------------------------
+1. OBJETIVO DA SPRINT (SPRINT GOAL)
+--------------------------------------------------------------------------------
+Estabelecer a infraestrutura base do sistema HortiReg, autenticação de usuários,
+estrutura da API FastAPI, painel administrativo React e integração inicial de produtos/pedidos.
+
+--------------------------------------------------------------------------------
+2. RESULTADO DA DEMONSTRAÇÃO E ACEITE DAS HISTÓRIAS
+--------------------------------------------------------------------------------
+[MAPEAMENTO / STATUS DE ACEITE PELO PO - HORTIREG]:
+- Demonstração do login e geração de tokens JWT.
+- Demonstração do CRUD de produtos via API e painel web.
+- Demonstração dos testes de API (pytest) e testes end-to-end (Cypress).
+- Validação dos critérios de aceite com o PO (Nidlan Hendell).
+
+Histórias Aceitas:
+- [x] Configuração da infraestrutura, Docker e CI/CD.
+- [x] Autenticação e controle de acesso.
+- [x] Gestão de produtos e catálogo.
+- [x] Painel administrativo funcional.
+
+--------------------------------------------------------------------------------
+3. FEEDBACK DO CLIENTE / PROFESSOR / STAKEHOLDERS
+--------------------------------------------------------------------------------
+[MAPEAMENTO / A PREENCHER]:
+- Registrar os comentários e apontamentos feitos na apresentação da Sprint 1 / Release 1.
+- Identificar melhorias de usabilidade e novos requisitos sugeridos para as próximas sprints.
+
+--------------------------------------------------------------------------------
+4. PRÓXIMOS PASSOS (SPRINT 2 / RELEASE 2)
+--------------------------------------------------------------------------------
+- Transição de liderança: Nidlan Hendell assume Scrum Master; Julio Araújo assume PO + DevOps; Rafael assume QA.
+- Início do fluxo de mensageria WhatsApp e processamento inteligente com Gemini.
+- Abertura da Sprint 2 em 03/11/2026.
+================================================================================

@@ -1,3 +1,20 @@
+# HortiReg (SGV-WA)
+
+Sistema de pedidos de hortifrúti pelo WhatsApp. Trabalho de Gerência de Software (UEPB), em Scrum.
+
+## Problema
+
+O feirante recebe pedidos por mensagem de texto e áudio no WhatsApp, cada um num formato. Hoje ele lê e ouve tudo à mão, anota itens e quantidades e monta a lista de separação antes da feira. Isso toma tempo, gera erro (item trocado, quantidade errada, pedido esquecido) e não deixa registro dos pedidos.
+
+## Solução
+
+- O cliente manda o pedido em texto ou áudio no WhatsApp.
+- A IA (Gemini) extrai os itens e as quantidades e confere com o catálogo de produtos e preços.
+- O bot devolve o resumo com valor estimado e pede a confirmação do cliente.
+- O feirante vê, no painel web, os pedidos confirmados do dia e a lista de separação consolidada.
+
+Fluxo técnico: WhatsApp → Evolution API → webhook FastAPI → Gemini → Postgres → painel React.
+
 ## Papéis e responsabilidades (Release 2)
 
 | Papel                  | Responsável   | Responsabilidades                                                                                                                                                                                                                                                                                                         |
@@ -7,6 +24,17 @@
 | **QA (Qualidade)**     | Rafael         | Conduz o Plano de Qualidade e o Plano de Teste; escreve os `.feature` e automatiza os cenários (Cypress e pytest-bdd); executa testes exploratórios e de usabilidade; verifica os 9 drivers arquiteturais; registra bugs com severidade e evidências; valida as US antes do aceite do PO.                                 |
 | **DevOps**             | Julio        | Mantém o pipeline de CI/CD (GitHub Actions), o ambiente local (Docker Compose) e o de homologação; executa testes, cobertura, análise estática e auditoria de dependências no pipeline; cuida de segredos (tokens do WhatsApp e das APIs de IA fora do repositório), monitoramento de disponibilidade, deploy e rollback. |
 | **Desenvolvimento**    | Toda a equipe | Implementa as US, escreve testes unitários e de integração, revisa pull requests (mínimo de 1 revisão antes do merge) e corrige os bugs.                                                                                                                                                                                  |
+
+Julio acumula PO e DevOps: não aceita nem revisa o próprio trabalho. O aceite de US feita por ele é testemunhado pelo SM.
+
+| Release | PO     | SM     | QA     | DevOps |
+| ------- | ------ | ------ | ------ | ------ |
+| R1      | Nidlan | Rafael | Julio  | Rafael |
+| R2      | Julio  | Nidlan | Rafael | Julio  |
+
+## Como contribuir
+
+Fluxo de branches, commits, PR e revisão em [`CONTRIBUTING.md`](CONTRIBUTING.md). Documentação do projeto (atas, planos, relatórios) em [`docs/`](docs/README.md).
 
 ## Execução local
 

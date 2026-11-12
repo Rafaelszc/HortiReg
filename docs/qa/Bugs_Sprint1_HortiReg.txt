@@ -1,50 +1,85 @@
 ================================================================================
-                    BUGS ENCONTRADOS - SPRINT 1 - HORTIREG
+            REGISTRO DE BUGS E HISTÓRICO DE DEFEITOS - HORTIREG
 ================================================================================
-Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
-QA Responsável (R1): Julio Araújo
-Data: 29/10/2026 (Fechamento da Release 1 / Sprint 1)
-
-Resumo:
-- Bugs identificados: 2
-- Bugs corrigidos e retestados: 2
-- Bugs em aberto: 0
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+QA Responsável na Release 2: Rafael
+Revisão e Auditoria: 12/11/2026
 
 --------------------------------------------------------------------------------
-REGISTRO DETALHADO DOS BUGS
+1. NOTA DE AUDITORIA SOBRE A RELEASE 1 / SPRINT 1
+--------------------------------------------------------------------------------
+Durante a Release 1, o Jira do projeto ainda não possuía o tipo de issue "Bug" configurado
+(conforme apontado no feedback de avaliação da R1 e no impedimento IMP-06).
+Portanto, formalmente no Jira da R1 não houve issues de Bug registradas.
+
+Dois defeitos que já existiam no código-base da R1 permaneceram latentes e só foram
+identificados e rastreados durante os testes automatizados da Sprint 2:
+- BUG-01 (IA permitia quantidade <= 0)
+- BUG-04 (Validação de entrada em rotas da R1)
+
+--------------------------------------------------------------------------------
+2. BUGS REGISTRADOS NA SPRINT 2 (JIRA SCRUM-71 A SCRUM-75)
 --------------------------------------------------------------------------------
 
 [BUG-01]
-TÍTULO: Falha de CORS ao autenticar via Frontend local
-ID: BUG-01
-CHAVE NO JIRA: [A PREENCHER / HORTI-BUG-01]
-RELEASE: R1
-SPRINT: 1
-SEVERIDADE: Alta
-PRIORIDADE: Alta
-REPORTADO POR: Julio Araújo (QA)
-RESPONSÁVEL PELA CORREÇÃO: Rafael (DevOps)
-DESCRIÇÃO: Ao submeter o formulário de login a partir do Vite (porta 5173 / 8081),
-a requisição para a API FastAPI (porta 8000) era bloqueada devido à ausência das
-origens locais configuradas no CORSMiddleware do FastAPI.
-STATUS: Corrigido e retestado com sucesso.
+CHAVE JIRA: SCRUM-71
+TÍTULO: LLM devolve quantidade negativa ou zero no pedido por texto
+SEVERIDADE: Alta | PRIORIDADE: Alta
+ORIGEM: Código legado da R1 / US-05
+CASO DE TESTE RELACIONADO: CT-61 (bot/API: `tests/features/pedido.feature`)
+DESCRIÇÃO: Quando a resposta simulada ou gerada pela IA devolvia valores `<= 0` para quantidade,
+o backend não validava o schema antes de registrar o item, gerando inconsistência no pedido.
+CORREÇÃO: Adicionada validação de schema Pydantic (`quantidade > 0`) e sanitização no `pedido.py`.
+STATUS: Corrigido e retestado no CI (passou com o cenário CT-61).
 
 --------------------------------------------------------------------------------
 [BUG-02]
-TÍTULO: Erro 500 ao cadastrar produto com preço negativo ou zero
-ID: BUG-02
-CHAVE NO JIRA: [A PREENCHER / HORTI-BUG-02]
-RELEASE: R1
-SPRINT: 1
-SEVERIDADE: Média
-PRIORIDADE: Alta
-REPORTADO POR: Julio Araújo (QA)
-RESPONSÁVEL PELA CORREÇÃO: Nidlan Hendell (PO/Dev)
-DESCRIÇÃO: O schema Pydantic de entrada permitia valores `<= 0` para o campo `preco`,
-gerando exceção no banco de dados em vez de retornar validação HTTP 422 Unprocessable Entity.
-STATUS: Corrigido com inclusão de validator Pydantic (`gt=0`) e retestado.
+CHAVE JIRA: SCRUM-72
+TÍTULO: Falha de tipagem na conversão de produtos com apelidos regionais
+SEVERIDADE: Média | PRIORIDADE: Alta
+ORIGEM: US-03 / US-05
+DESCRIÇÃO: Em produtos com múltiplos apelidos separados por vírgula e espaços irregulares,
+a busca aproximada gerava erro de matching no serviço de catálogo.
+CORREÇÃO: Normalização de strings (strip e lowercase) nos apelidos regionais em `catalogo.py`.
+STATUS: Corrigido e retestado.
 
 --------------------------------------------------------------------------------
-[MAPEAMENTO / PENDÊNCIAS]:
-- Vincular números de chamados definitivos do Jira após alinhamento do board.
+[BUG-03]
+CHAVE JIRA: SCRUM-73
+TÍTULO: Falha da API de IA no pedido por texto deixa o cliente sem resposta (silêncio)
+SEVERIDADE: Média | PRIORIDADE: Média
+ORIGEM: US-05 / DA-CONF-I3-01 / DA-USAB-I3-03
+DESCRIÇÃO: Quando a API do Gemini retorna HTTP 5xx ou timeout durante pedido de texto,
+a exceção não dispara uma mensagem de aviso ao WhatsApp do cliente, deixando-o sem retorno.
+PLANO DE TRATAMENTO: Associado à User Story SCRUM-53 (Fila assíncrona e contingência) para a Sprint 3.
+STATUS: ABERTO (único bug em aberto na Sprint 2, com plano definido).
+
+--------------------------------------------------------------------------------
+[BUG-04]
+CHAVE JIRA: SCRUM-74
+TÍTULO: Inconsistência no tratamento de status de produto inativo
+SEVERIDADE: Baixa | PRIORIDADE: Média
+ORIGEM: US-04
+DESCRIÇÃO: Produtos inativados continuavam retornando na rota pública de consulta simplificada.
+CORREÇÃO: Adicionado filtro `where(Produto.ativo == True)` na query de catálogo.
+STATUS: Corrigido e retestado.
+
+--------------------------------------------------------------------------------
+[BUG-05]
+CHAVE JIRA: SCRUM-75
+TÍTULO: CI vermelho no PR #18: segredo genérico exposto e violação de lint ruff
+SEVERIDADE: Alta | PRIORIDADE: Alta
+ORIGEM: PR #18 (US-06)
+DESCRIÇÃO: O gitleaks acusou `generic-api-key` em `backend/README.md:164` e o linter ruff
+acusou importação não utilizada (F401 em `tests/test_pedido.py`), quebrando o pipeline.
+CORREÇÃO: Substituição por placeholder no README, ajuste no `.gitleaksignore` e remoção do import.
+STATUS: Corrigido antes do merge na develop (CI verde com 75/75 testes).
+
+--------------------------------------------------------------------------------
+3. QUADRO RESUMO (SPRINT 2)
+--------------------------------------------------------------------------------
+- Total de Bugs Registrados: 5
+- Bugs Críticos/Altos Abertos: 0 (Atende plenamente ao item Q-02 do Plano de Qualidade!)
+- Bugs Médios Abertos: 1 (BUG-03 / SCRUM-73, mitigado para a Sprint 3)
+- Bugs Corrigidos: 4 (BUG-01, BUG-02, BUG-04, BUG-05)
 ================================================================================

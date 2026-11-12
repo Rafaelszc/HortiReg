@@ -1,0 +1,119 @@
+================================================================================
+                REGISTRO DE RISCOS DO PROJETO - HORTIREG (SGV-WA)
+================================================================================
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+Scrum Master da Release 2: Nidlan Hendell | QA: Rafael | PO: Julio
+Data: 12/11/2026 (Versão 1.2)
+Base: Planilha GP_RiscoBaseadoDefeitos e Tarefas TR-01 a TR-09 no Backlog
+
+--------------------------------------------------------------------------------
+1. MATRIZ DE RISCOS BASEADA EM DEFEITOS E ATRIBUTOS DE QUALIDADE
+--------------------------------------------------------------------------------
+
+[RK-01 - Confiabilidade: Erros na Extração de Itens em Áudio/Linguagem Regional]
+- ID DO RISCO: RK-01
+- ATRIBUTO: Confiabilidade
+- RESPONSÁVEL: Nidlan
+- EXPOSIÇÃO / GRAVIDADE: 16 (Probabilidade Alta x Impacto Alto)
+- DRIVER ASSOCIADO: DA-CONF-I1-01
+- ITEM DO PLANO DE QUALIDADE: Q-06 (Precisão ≥ 90% em 50 áudios/textos de referência)
+- ESTRATÉGIA: Evitar
+- TAREFA NO JIRA: TR-01 (Cadastrar apelidos no catálogo [US-03], desambiguação [US-07] e manter golden set de 50 áudios).
+- STATUS ATUAL: Em tratamento. Atenção: prompt alterado na US-06; conjunto de 50 áudios (SCRUM-47) pendente de gravação (ver IMP-08).
+
+--------------------------------------------------------------------------------
+[RK-02 - Confiabilidade: Mensagens Duplicadas no Webhook Gerando Pedidos Duplicados]
+- ID DO RISCO: RK-02
+- ATRIBUTO: Confiabilidade
+- RESPONSÁVEL: Rafael
+- EXPOSIÇÃO / GRAVIDADE: 9 (Probabilidade Média x Impacto Médio)
+- DRIVER ASSOCIADO: DA-CONF-I2-01
+- ITEM DO PLANO DE QUALIDADE: Q-07 (0 pedidos duplicados em 1.000 msgs com 20% reenvios)
+- ESTRATÉGIA: Mitigar / Prevenir
+- TAREFA NO JIRA: TR-02 (Idempotência por message_id no PostgreSQL e teste de 1.000 msgs).
+- STATUS ATUAL: Mitigado com sucesso. Teste automatizado passando no CI (0 duplicidades).
+
+--------------------------------------------------------------------------------
+[RK-03 - Confiabilidade: Indisponibilidade da API Externa de IA com Perda de Pedidos]
+- ID DO RISCO: RK-03
+- ATRIBUTO: Confiabilidade
+- RESPONSÁVEL: Júlio
+- EXPOSIÇÃO / GRAVIDADE: 16 (Probabilidade Alta x Impacto Alto)
+- DRIVER ASSOCIADO: DA-CONF-I3-01
+- ITEM DO PLANO DE QUALIDADE: Q-08 (100% mensagens preservadas; reprocessadas em ≤ 5 min)
+- ESTRATÉGIA: Evitar
+- TAREFA NO JIRA: TR-03 (Persistência imediata ao receber, fila com retentativa e aviso ao cliente).
+- STATUS ATUAL: Mitigação parcial. BUG-03 aberto (silêncio em erro de texto); solução completa na US SCRUM-53 (Sprint 3).
+
+--------------------------------------------------------------------------------
+[RK-04 - Disponibilidade: Sobrecarga e Descarte no Horário de Pico Pré-Feira]
+- ID DO RISCO: RK-04
+- ATRIBUTO: Disponibilidade
+- RESPONSÁVEL: Nidlan
+- EXPOSIÇÃO / GRAVIDADE: 12 (Probabilidade Média x Impacto Alto)
+- DRIVER ASSOCIADO: DA-DISP-I1-02
+- ITEM DO PLANO DE QUALIDADE: Q-09 (0 descartes em 50 pedidos; 95% resumos em ≤ 10s)
+- ESTRATÉGIA: Mitigar / Prevenir
+- TAREFA NO JIRA: TR-04 (Processamento assíncrono com async/await, limite de concorrência e teste de carga k6).
+- STATUS ATUAL: Planejado para a Release 3.
+
+--------------------------------------------------------------------------------
+[RK-05 - Disponibilidade: Indisponibilidade Prolongada em Deploy ou Falha de Rollback]
+- ID DO RISCO: RK-05
+- ATRIBUTO: Disponibilidade
+- RESPONSÁVEL: Rafael
+- EXPOSIÇÃO / GRAVIDADE: 12 (Probabilidade Média x Impacto Alto)
+- DRIVER ASSOCIADO: DA-DISP-I2-02
+- ITEM DO PLANO DE QUALIDADE: Q-10 (Downtime ≤ 60s por deploy; rollback ≤ 2 min)
+- ESTRATÉGIA: Mitigar / Prevenir
+- TAREFA NO JIRA: TR-05 (Pipeline automatizado com healthcheck e rollback ensaiado em homologação).
+- STATUS ATUAL: Bloqueado pela ausência de ambiente de homologação (ver IMP-07 / SCRUM-51).
+
+--------------------------------------------------------------------------------
+[RK-06 - Disponibilidade: Queda Silenciosa da Sessão do WhatsApp na Evolution API]
+- ID DO RISCO: RK-06
+- ATRIBUTO: Disponibilidade
+- RESPONSÁVEL: Júlio
+- EXPOSIÇÃO / GRAVIDADE: 15 (Probabilidade Alta x Impacto Alto)
+- DRIVER ASSOCIADO: DA-DISP-I3-02
+- ITEM DO PLANO DE QUALIDADE: Q-09 (Detecção da queda em ≤ 2 min; reconexão ≤ 5 min)
+- ESTRATÉGIA: Evitar
+- TAREFA NO JIRA: TR-06 (Healthcheck periódico da sessão a cada 1 min, reconexão automática e alerta).
+- STATUS ATUAL: Planejado para a Release 3.
+
+--------------------------------------------------------------------------------
+[RK-07 - Usabilidade: Desistência de Clientes Novos por Falta de Instrução no WhatsApp]
+- ID DO RISCO: RK-07
+- ATRIBUTO: Usabilidade
+- RESPONSÁVEL: Nidlan
+- EXPOSIÇÃO / GRAVIDADE: 9 (Probabilidade Média x Impacto Médio)
+- DRIVER ASSOCIADO: DA-USAB-I1-03
+- ITEM DO PLANO DE QUALIDADE: Q-11 (≥ 9 de 10 clientes concluem sem ajuda em ≤ 3 min)
+- ESTRATÉGIA: Mitigar / Prevenir
+- TAREFA NO JIRA: TR-07 (Resumo paginado com contagem total de itens e opções numeradas 1, 2 e 3).
+- STATUS ATUAL: Sessão de teste com 5 a 10 pessoas pendente de agendamento (ver IMP-11).
+
+--------------------------------------------------------------------------------
+[RK-08 - Usabilidade: Dificuldade do Feirante em Atualizar Preços Rapidamente no Painel]
+- ID DO RISCO: RK-08
+- ATRIBUTO: Usabilidade
+- RESPONSÁVEL: Rafael
+- EXPOSIÇÃO / GRAVIDADE: 9 (Probabilidade Média x Impacto Médio)
+- DRIVER ASSOCIADO: DA-USAB-I2-03
+- ITEM DO PLANO DE QUALIDADE: Q-11 (Atualizar em ≤ 30s e ≤ 3 cliques; nota média ≥ 4)
+- ESTRATÉGIA: Mitigar / Prevenir
+- TAREFA NO JIRA: TR-08 (Busca e edição direta inline no catálogo do painel React).
+- STATUS ATUAL: Tela implementada no painel; teste de usabilidade pendente de execução.
+
+--------------------------------------------------------------------------------
+[RK-09 - Usabilidade: Mensagens de Erro Genéricas Deixando o Cliente sem Saber o que Fazer]
+- ID DO RISCO: RK-09
+- ATRIBUTO: Usabilidade
+- RESPONSÁVEL: Júlio
+- EXPOSIÇÃO / GRAVIDADE: 12 (Probabilidade Média x Impacto Alto)
+- DRIVER ASSOCIADO: DA-USAB-I3-03
+- ITEM DO PLANO DE QUALIDADE: Q-12 (100% dos fluxos de exceção tratados com exemplos claros)
+- ESTRATÉGIA: Mitigar / Prevenir
+- TAREFA NO JIRA: TR-09 (Catálogo de mensagens amigáveis e automação de cenários @excecao).
+- STATUS ATUAL: Áudio 7 de 7 cenários tratados com sucesso (CT-14a a CT-14g); texto pendente na falha da IA (BUG-03).
+================================================================================

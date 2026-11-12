@@ -1,44 +1,116 @@
 ================================================================================
-                    PROJETO ARQUITETURAL - HORTIREG
+                    PROJETO ARQUITETURAL - HORTIREG (SGV-WA)
 ================================================================================
-Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
-Referência visual: docs/arquitetura/hortireg_projetoArquitetural.png
+Projeto: SGV-WA – HortiReg (Vendas e logística de hortifrúti via WhatsApp)
+Disciplina: Gerência de Projetos (UEPB, 2026.2)
+Equipe: Julio (PO e DevOps), Nidlan (SM), Rafael (QA)
+Versão: 1.2 · Data: 12/11/2026
 
 --------------------------------------------------------------------------------
-1. VISÃO GERAL DA STACK TECNOLÓGICA
+1. DIAGRAMA ARQUITETURAL (MERMAID)
 --------------------------------------------------------------------------------
-- Front-end:
-  * React + TypeScript com build Vite (localizado em frontend/)
-  * Interface administrativa para catálogo, produtos e pedidos
-  * Estilização moderna e consumo de API REST via Axios/Fetch
+```mermaid
+graph TD
+    subgraph Clientes_Produtores ["Canal WhatsApp (Clientes / Produtores)"]
+        WPP["WhatsApp Mobile/Web"]
+    end
 
-- Back-end:
-  * Python 3.12+ com framework FastAPI (localizado em backend/)
-  * Arquitetura em camadas: Routers, Schemas (Pydantic), Models (SQLAlchemy), Services
-  * Autenticação e Autorização via JWT (OAuth2 Password Bearer) e hash Bcrypt
-  * Processamento de Mensagens e Áudio com Google Gemini API e Evolution API (WhatsApp)
+    subgraph Administrador ["Canal Web Administrativo"]
+        Browser["Navegador Web (Chrome)"]
+    end
 
-- Banco de Dados:
-  * PostgreSQL 16 (persolvência relacional para usuários, produtos, pedidos e itens)
+    subgraph Integracao_Mensageria ["Integração de Mensageria"]
+        Evolution["Evolution API (Baileys) :8080<br/>• Sessão WhatsApp<br/>• Recebimento de Webhooks<br/>• Envio de Respostas"]
+    end
 
-- Infraestrutura e Automação:
-  * Docker e Docker Compose (orquestração dos contêineres: backend, frontend, banco e Evolution)
-  * CI/CD via GitHub Actions (execução de linters, pytest e cypress a cada push e PR)
+    subgraph Frontend_App ["Front-end (Painel Administrativo)"]
+        ReactApp["React 18 + TypeScript (Vite) :8081<br/>• Login & Autenticação<br/>• Gestão de Catálogo (Produtos)<br/>• Pedidos do Dia<br/>• Rota de Entrega (R4)"]
+    end
+
+    subgraph Backend_App ["Back-end (FastAPI) :8000"]
+        RouterAuth["/auth (JWT / Bcrypt)"]
+        RouterProd["/produtos (CRUD Catálogo)"]
+        RouterPed["/pedidos (Status & Gestão)"]
+        RouterWH["/webhook (Recepção WhatsApp)"]
+        
+        ServiceSec["SecurityService (Token & Hash)"]
+        ServiceCat["CatalogoService (Regras de Produto)"]
+        ServiceLLM["LLMService (Extração & JSON Schema)"]
+        ServiceAudio["AudioService (Transcrição & Validação)"]
+        ServiceExp["ExpiracaoService (Tarefas de 30 min)"]
+        ServiceWpp["WhatsAppService (Disparo Evolution)"]
+    end
+
+    subgraph IA_Externa ["Serviços Externos de Inteligência"]
+        Gemini["Google Gemini API / Whisper<br/>• Transcrição de Áudio (≤ 60s)<br/>• Extração de Itens & Quantidades<br/>• Validação contra Catálogo"]
+    end
+
+    subgraph Persistencia ["Banco de Dados"]
+        Postgres[("PostgreSQL 16 :5432<br/>• Tabelas: usuarios, produtos,<br/>pedidos, itens_pedido, mensagens<br/>• Idempotência por message_id")]
+    end
+
+    subgraph Pipeline_CI ["Qualidade Contínua (GitHub Actions)"]
+        GHA["GitHub Actions CI/CD<br/>• pytest & pytest-cov (≥ 80%)<br/>• pytest-bdd (bot/API)<br/>• Cypress (E2E Painel)<br/>• ruff, bandit, pip-audit, gitleaks"]
+    end
+
+    %% Fluxos de Comunicação
+    WPP <-->|Mensagens de Texto e Áudio| Evolution
+    Evolution -->|POST /webhook idempotente| RouterWH
+    RouterWH --> ServiceLLM
+    RouterWH --> ServiceAudio
+    ServiceAudio -->|Áudio p/ Transcrição| Gemini
+    ServiceLLM -->|Prompt com Catálogo| Gemini
+    Gemini -->|JSON Estruturado| ServiceLLM
+    ServiceLLM --> RouterPed
+    RouterPed --> Postgres
+    RouterWH --> ServiceWpp
+    ServiceWpp -->|Notificações & Resumos| Evolution
+
+    Browser <-->|HTTPS / REST| ReactApp
+    ReactApp <-->|REST API + Bearer JWT| RouterAuth
+    ReactApp <-->|REST API + Bearer JWT| RouterProd
+    ReactApp <-->|REST API + Bearer JWT| RouterPed
+
+    RouterAuth --> ServiceSec
+    RouterProd --> ServiceCat
+    ServiceCat --> Postgres
+    RouterPed --> Postgres
+    ServiceSec --> Postgres
+```
 
 --------------------------------------------------------------------------------
-2. FLUXO E INTEGRAÇÕES PRINCIPAIS
+2. DETALHAMENTO DOS COMPONENTES E STACK
 --------------------------------------------------------------------------------
-1) Canal Web (Painel Administrativo):
-   Navegador (React) -> Requisições REST HTTPS -> FastAPI -> PostgreSQL.
-   O token JWT identifica o perfil de acesso e os middlewares liberam ou bloqueiam as rotas.
+1. Front-end (Painel Web):
+   - Localização: `frontend/`
+   - Tecnologia: React 18, TypeScript, Vite, Axios, Cypress para E2E.
+   - Porta: `:8081` (Docker) ou `:5173` (Vite dev proxy).
+   - Funcionalidades: Autenticação de administrador, CRUD de produtos com apelidos regionais,
+     visualização de pedidos confirmados do dia e relatórios de separação.
 
-2) Canal WhatsApp (Clientes / Produtores):
-   WhatsApp -> Webhook Evolution API -> Endpoint FastAPI (`/webhook`) ->
-   Serviço de Áudio / Texto (Gemini LLM) -> Reconhecimento de Intenção e Produtos ->
-   Persistência no PostgreSQL -> Notificação / Resposta Automática via WhatsApp.
+2. Back-end (API REST & Webhooks):
+   - Localização: `backend/`
+   - Tecnologia: Python 3.12+, FastAPI, SQLAlchemy, Pydantic v2, Alembic.
+   - Porta: `:8000`.
+   - Segurança: Autenticação OAuth2 Password Bearer com tokens JWT e hash Bcrypt.
+   - Módulos Principais:
+     * `routers/webhook.py`: Recebe notificações da Evolution API, valida tokens e
+       garante idempotência pelo ID da mensagem (DA-CONF-I2-01 / RK-02).
+     * `services/llm.py` e `services/audio.py`: Comunica com Gemini API para extrair itens,
+       quantidades e unidades com base estrita no catálogo cadastrado (DA-CONF-I1-01).
+     * `services/expiracao.py`: Gerencia a expiração automática de pedidos não confirmados (US-10).
 
---------------------------------------------------------------------------------
-[MAPEAMENTO / PENDÊNCIAS]:
-- [ ] Inserir diagrama arquitetural oficial do HortiReg em `docs/arquitetura/hortireg_projetoArquitetural.png`.
-- [ ] Detalhar o fluxo de contingência caso a API externa (Gemini ou WhatsApp) fique indisponível.
+3. Banco de Dados:
+   - PostgreSQL 16 na porta `:5432`.
+   - Tabelas: `usuarios`, `produtos`, `pedidos`, `itens_pedido`, `mensagens`.
+   - Regra estrita de persistência: chave única por `message_id` para evitar pedidos duplicados.
+
+4. Mensageria WhatsApp:
+   - Evolution API (Baileys) na porta `:8080`.
+   - Envia e recebe mensagens via Webhook assíncrono.
+
+5. Infraestrutura e CI/CD:
+   - Orquestração local completa via `docker-compose.yml`.
+   - Pipeline GitHub Actions executando linter (`ruff`), segurança (`bandit`, `pip-audit`, `gitleaks`),
+     testes unitários e de integração (`pytest`, `pytest-cov` com fail-under de 80%) e E2E (`Cypress`).
 ================================================================================

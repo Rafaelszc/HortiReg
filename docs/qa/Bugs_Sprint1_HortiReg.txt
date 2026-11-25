@@ -86,15 +86,17 @@ EVIDÊNCIA: log do job "Segredos (gitleaks)" na branch.
 CORREÇÃO: PR #18 (commit 54815d9), antes do merge. STATUS: Corrigido e retestado.
 
 ---
-3. A REGISTRAR (SPRINT 3)
+3. BUG ABERTO (SPRINT 3)
 ---
+[BUG-06] SCRUM-76 (backlog, prioridade Low)
 - Reserva de 120 s da fila (PR #26, fila_reserva_segundos): se um processamento passar de 120 s
   ou o processo cair depois de criar o pedido, o laço reprocessa a mensagem e pode duplicar o pedido.
-  Severidade proposta: Baixa (timeouts da IA são 30 s no texto e 45 s no áudio). Issue a abrir.
+  Severidade: Baixa (timeouts da IA são 30 s no texto e 45 s no áudio). Passos, causa e
+  correção sugerida na SCRUM-76. STATUS: Aberto.
 
 ---
 4. RESUMO (25/11/2026)
 ---
-- Encontrados: 5 | Corrigidos: 5 | Abertos: 0
+- Encontrados: 6 | Corrigidos: 5 | Abertos: 1 (BUG-06, Baixa)
 - Críticos/altos abertos: 0 (Q-02 atendido)
 ===

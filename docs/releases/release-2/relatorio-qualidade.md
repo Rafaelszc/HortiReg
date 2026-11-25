@@ -34,10 +34,11 @@ Todos os bugs vieram do teste exploratório do QA em 11/11, com o reproduzível 
 | BUG-03 | SCRUM-73 | Se a IA falha num pedido por texto, o cliente não recebe resposta nenhuma e nada fica registrado | Média | DA-CONF-I3-01 / CT-54 | Corrigido: aviso ao cliente no PR #23 (12/11); gravação e retentativa no PR #26 (25/11). Retestado na regressão final |
 | BUG-04 | SCRUM-74 | `POST /webhook/whatsapp` aceita evento forjado sem token (HTTP 200) e permite confirmar ou cancelar pedido de outro número | Alta | US-05 / CT-57 | Corrigido no PR #19 |
 | BUG-05 | SCRUM-75 | O CI da branch da US-06 falha no gitleaks (`generic-api-key` em `backend/README.md:164`) e no ruff (`F401`) | Alta | US-06 / CT-13 | Corrigido no PR #18 (commit `54815d9`) |
+| BUG-06 | SCRUM-76 | Reserva de 120 s da fila pode reprocessar a mensagem e duplicar o pedido | Baixa | DA-CONF-I3-01 / CT-54 | **Aberto** (backlog); achado na revisão do PR #26 |
 
-**Total: 5 encontrados, 5 corrigidos e mesclados, 0 abertos. Passos e evidências: [`docs/qa/Bugs_Sprint1_HortiReg.txt`](../../qa/Bugs_Sprint1_HortiReg.txt).**
+**Total: 6 encontrados, 5 corrigidos e mesclados, 1 aberto (BUG-06, Baixa). Passos e evidências: [`docs/qa/Bugs_Sprint1_HortiReg.txt`](../../qa/Bugs_Sprint1_HortiReg.txt).**
 
-A registrar (Sprint 3): reserva de 120 s da fila (PR #26). Processamento acima de 120 s, ou queda do processo depois de criar o pedido, faz o laço reprocessar a mensagem e pode duplicar o pedido. Severidade proposta: Baixa (timeouts da IA: 30 s no texto, 45 s no áudio).
+BUG-06 (SCRUM-76): processamento acima de 120 s, ou queda do processo depois de criar o pedido, faz o laço reprocessar a mensagem e pode duplicar o pedido. Severidade: Baixa (timeouts da IA: 30 s no texto, 45 s no áudio).
 
 Observação: versões antigas de `docs/qa/Bugs_Sprint1_HortiReg.txt` usavam os IDs BUG-01, BUG-02 e BUG-04 para defeitos sem evidência no código nem no histórico do Git (não há `CORSMiddleware`; o schema de produto usa `ge=0`, não `gt=0`). O arquivo foi reescrito em 25/11 com os IDs da tabela acima.
 
@@ -48,7 +49,7 @@ N/M = não medido, com o motivo na observação.
 | ID | Item | Meta | R1 | R2 (25/11, S3) | Observação |
 |---|---|---|---|---|---|
 | Q-01 | Cobertura de testes | ≥ 70% (proposta v1.1: ≥ 80%) | 91% | 93,27% (regressão final) | Atinge a meta; relatório salvo em `cobertura-regressao-final.txt` |
-| Q-02 | Bugs críticos e altos abertos | 0 no fechamento | N/M (não existia o tipo Bug) | **0** | Atinge; nenhum bug aberto |
+| Q-02 | Bugs críticos e altos abertos | 0 no fechamento | N/M (não existia o tipo Bug) | **0** | Atinge; único aberto é o BUG-06 (Baixa) |
 | Q-03 | US com Gherkin de sucesso e exceção | 100% | 100% (US-01 a US-05) | 100% (US-06 a US-12) | Conferido nas issues |
 | Q-04 | PRs integrados com ≥ 1 revisão | 100% | **0% (0 de 12)** | **57% com aprovação (8 de 14)** | Aprovados: #18, #19, #20, #22 a #26. Só com comentário: #13 a #17. Sem revisão: #21. Desde a proteção de `main` e `develop` (12/11), 100% dos PRs mesclados foram aprovados (#22 a #26) |
 | Q-05 | CI verde na branch principal | ≥ 90% | `main` 100% (2/2); `develop` 71% (5/7) | `develop` 100% (5/5 concluídos) | Outros 3 runs foram cancelados por concorrência (substituídos pelo merge seguinte), não falharam |
@@ -148,7 +149,7 @@ Valores para a coluna "Sprint 2" da planilha `Definition_of_Done_HortiReg` (aba 
 | Nº | Critério | Sprint 3 | Evidência e observação |
 |---|---|---|---|
 | 2 | US concluídas atendem à DoD de US | Não | Nenhuma US da Sprint 3 entregue; SCRUM-53 mesclado, aguarda aceite do PO |
-| 7 | Bugs da sprint registrados com evidência e severidade | Pendente | Falta abrir a issue da reserva de 120 s |
+| 7 | Bugs da sprint registrados com evidência e severidade | Sim | BUG-06 (SCRUM-76) com passos, causa e severidade |
 | 8 | Nenhum bug crítico ou alto aberto sem plano | Sim | 0 alto aberto |
 | 9 | Regressão dos itens afetados executada | Sim | Regressão final de 25/11, run 45684180353 (seção 1) |
 | 21 | Gherkin da US automatizado e passando no CI | Sim | `fila_retentativa.feature` no run 45684180353 |
@@ -159,7 +160,7 @@ Valores para a coluna "Sprint 2" da planilha `Definition_of_Done_HortiReg` (aba 
 1. ~~Proteger `main` e `develop`~~ (feito em 12/11). Falta: bypass só para emergência, merge só por merge commit e revisão com "Approve" (comentário não conta). Responsável: DevOps.
 2. ~~Abrir os PRs da US-06 e do token e corrigir o BUG-05~~ (feito: PRs #18 e #19 mesclados).
 3. Registrar o aceite do PO nas issues (US-06 com o SM como testemunha) e preencher a planilha de DoD com os valores da seção 4. Responsáveis: PO e QA.
-4. ~~Aprovar e mesclar o PR #26, fechar o BUG-03 e confirmar o Q-08~~ (feito em 25/11). Falta: abrir a issue da reserva de 120 s e mudar o BUG-03 (SCRUM-73) para Done no Jira. Responsáveis: Julio e QA.
+4. ~~Aprovar e mesclar o PR #26, fechar o BUG-03 e confirmar o Q-08~~ (feito em 25/11). Issue da reserva aberta (SCRUM-76). Falta: mudar o BUG-03 (SCRUM-73) para Done no Jira. Responsáveis: Julio e QA.
 5. Homologar US-06, US-08 e US-10 com número real quando o ambiente existir (SCRUM-51). Responsável: DevOps.
 6. ~~Confirmar ou retirar os bugs de `docs/qa/Bugs_Sprint1_HortiReg.txt`~~ (feito em 25/11: reescrito com os IDs válidos).
 7. ~~Antes da Review da Sprint 3: regressão completa na `develop` integrada~~ (feito em 25/11, run 45684180353).

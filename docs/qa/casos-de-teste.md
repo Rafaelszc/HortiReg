@@ -43,7 +43,7 @@ Cada caso aponta para a US (issue do Jira), para o cenário automatizado que o v
 | CT-23 | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Confirmação depois da expiração" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-23b | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Pedido dentro do prazo não expira" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-24, CT-25, CT-25b | US-11 / SCRUM-35 | `pedido_endereco.feature` (`@wip`); o CT-25b verifica a LGPD (endereço fora dos logs) | Especificado | Sprint 3 |
-| CT-26, CT-27 | US-12 / SCRUM-36 | Cypress `pedidos_do_dia.feature` (`@wip`) | Especificado | Sprint 3; existe uma implementação antiga em `backup/SCRUM-36-pedidos-do-dia` |
+| CT-26, CT-27 | US-12 / SCRUM-36 | API: `backend/tests/features/pedidos_do_dia.feature` (lista do dia, dia vazio, exige autenticação); painel: Cypress `pedidos_do_dia.feature` (API simulada) | Passou (CI) | PR #29 em revisão; [run 45689476387](https://github.com/Rafaelszc/HortiReg/actions/runs/45689476387). Endereço vem de `Cliente.endereco` (US-11 pendente) |
 
 ## Releases 3 e 4 (planejados)
 
@@ -57,7 +57,7 @@ CT-28 a CT-47 (US-13 a US-22) estão Pendentes. Os nomes dos cenários estão no
 | CT-49 | DA-DISP-I1-02 / SCRUM-48 | k6 no pico | Pendente | R3 |
 | CT-50 | DA-USAB-I1-03 / SCRUM-49 | Teste de usabilidade | Manual, pendente | — |
 | CT-51 | DA-CONF-I2-01 / SCRUM-50, RK-02 / SCRUM-57 | `pedido.feature` "Webhook reenviado não gera pedido duplicado" e `test_duplicidade_carga.py` (1.000 mensagens, 20% reenviadas) | Passou (CI) | 0 duplicados; PR #15; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
-| CT-52 | DA-DISP-I2-02 / SCRUM-51 | Deploy com falha injetada | Pendente | Não existe ambiente de homologação |
+| CT-52 | DA-DISP-I2-02 / SCRUM-51 | `deploy/ensaio-rollback.sh`: deploy normal + deploy com falha injetada (banco inacessível) na homologação local | Passou (CI) | PR #30 em revisão. Local: 2,5 s fora do ar, rollback em 41,8 s; CI [run 45691331085](https://github.com/Rafaelszc/HortiReg/actions/runs/45691331085): 1,5 s e 32,4 s. Registro: `docs/releases/release-2/deploys-homologacao.csv` |
 | CT-53 | DA-USAB-I2-03 / SCRUM-52 | Cronometrar a troca de preço no painel | Manual, pendente | Medir junto com o Q-11 |
 | CT-54 | DA-CONF-I3-01 / SCRUM-53 | `fila_retentativa.feature`: 7 cenários (gravação e aviso, reprocessamento quando a IA volta, falha de 30 min com 3 clientes, reenvio durante a falha, prazo esgotado, áudio na retentativa, ordem de chegada) | Passou (CI) | PR #26 (mesclado em 25/11); regressão final [run 45684180353](https://github.com/Rafaelszc/HortiReg/actions/runs/45684180353). Fecha o BUG-03 (SCRUM-73) |
 | CT-55 | DA-DISP-I3-02 / SCRUM-54 | Queda da sessão do WhatsApp | Pendente | R3 |

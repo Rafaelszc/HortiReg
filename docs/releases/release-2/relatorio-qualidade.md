@@ -1,6 +1,6 @@
 # Relatório de qualidade · Release 2
 
-QA: Rafael. **Situação: fechado para a Review da Sprint 3 (atualizado em 25/11/2026: `develop` `cc394bf`, PRs #13 a #26 mesclados; regressão final na seção 1).**
+QA: Rafael. **Situação: fechado para a Review da Sprint 3 (atualizado em 25/11/2026: `develop` `cc394bf`, PRs #13 a #26 mesclados; regressão final na seção 1). US-12 (PR #29) e SCRUM-51 (PR #30) entregues com CI verde, aguardando revisão.**
 
 Este relatório traz também os resultados da R1, que não tinham sido medidos (feedback da R1). Base: Plano de Qualidade v1.1 e Plano de Teste v1.1. Casos e evidências: [`docs/qa/casos-de-teste.md`](../../qa/casos-de-teste.md).
 
@@ -15,6 +15,8 @@ Este relatório traz também os resultados da R1, que não tinham sido medidos (
 | **12/11** | **`develop` integrada (`d1d8760`, PRs #13 a #21)** | **CI completo ([run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377))** | **75/75 passaram, cobertura 93,19%; `ruff` limpo; Cypress: todos os specs passaram; gitleaks, bandit, pip-audit e npm audit sem achados** |
 | 12/11 | `develop` (`1d3ded2`, após PRs #22 a #25) | CI de push ([run 43205652714](https://github.com/Rafaelszc/HortiReg/actions/runs/43205652714)) | 77/77, cobertura 93,32%; Cypress `@smoke` verde; ruff e segurança limpos |
 | 25/11 | PR #26 (SCRUM-53, fila com retentativa), antes do merge | CI de PR ([run 45539392921](https://github.com/Rafaelszc/HortiReg/actions/runs/45539392921)) | 84/84, cobertura 93,27%; Cypress `@smoke or @regressao` verde (4/4); gitleaks, bandit, pip-audit e npm audit sem achados |
+| 25/11 | PR #29 (US-12, pedidos do dia) | CI de PR ([run 45689476387](https://github.com/Rafaelszc/HortiReg/actions/runs/45689476387)) | Suíte completa e Cypress `@regressao` verdes; local: 89 passed, cobertura 93,47%, Cypress 6/6 |
+| 25/11 | PR #30 (SCRUM-51, deploy e rollback) | CI de PR ([run 45691331013](https://github.com/Rafaelszc/HortiReg/actions/runs/45691331013)) e ensaio ([run 45691331085](https://github.com/Rafaelszc/HortiReg/actions/runs/45691331085)) | Suíte verde (cobertura 93,28%); ensaio aprovado: 1,5 s fora do ar, rollback 32,4 s |
 | **25/11** | **Regressão final da R2: `develop` `cc394bf` (com o #26) + docs, PR #27** | **CI de PR completo ([run 45684180353](https://github.com/Rafaelszc/HortiReg/actions/runs/45684180353)): `pytest --cov=app --cov-fail-under=80`, Cypress `(@smoke or @regressao) and not @wip`** | **84/84 passaram, cobertura 93,27%; Cypress 4/4; ruff, gitleaks, bandit, pip-audit e npm audit sem achados. Cobertura por arquivo: [`cobertura-regressao-final.txt`](cobertura-regressao-final.txt)** |
 
 Ambiente: Postgres 16 descartável (`hortireg_test`), com Gemini e WhatsApp simulados (fixtures `llm_fake` e `whatsapp_fake`).
@@ -57,7 +59,7 @@ N/M = não medido, com o motivo na observação.
 | Q-07 | Pedidos duplicados em 1.000 mensagens | 0 | 0 (teste com 1 reenvio) | **0 (1.000 mensagens, 200 reenvios)** | PR #15 |
 | Q-08 | Mensagens preservadas com a IA fora do ar | 100%; reprocessadas em ≤ 5 min | N/M | **100%** | `fila_retentativa.feature` "Falha de 30 minutos sem perder nenhuma mensagem" (3 clientes, reprocessadas em até 5 min), na regressão final (run 45684180353). Teste com IA simulada; falha real só em homologação |
 | Q-09 | Disponibilidade de 05h a 18h | ≥ 95% em homologação | N/A | N/M | Sem homologação |
-| Q-10 | Downtime por deploy e rollback | ≤ 60 s e ≤ 2 min | N/A | N/M | SCRUM-51 sem ambiente |
+| Q-10 | Downtime por deploy e rollback | ≤ 60 s e ≤ 2 min | N/A | **Deploy: 2,5 s (local) / 1,5 s (CI). Rollback: 41,8 s / 32,4 s** | Homologação local (`deploy/`), PR #30; registro em `deploys-homologacao.csv`. Vale após o merge |
 | Q-11 | Usabilidade | ver plano | N/M | N/M | Sessão com 5 a 10 pessoas pendente |
 | Q-12 | Fluxos de exceção com mensagem tratada | 100% | 3 de 3 (US-05) | Áudio 7 de 7; texto 2 de 2 (IA fora do ar e IA lenta) | `pedido_audio.feature` (PR #18); `pedido.feature` `@excecao` (PR #23); fila: 2 cenários `@excecao` no PR #26 |
 | Q-13 | Vulnerabilidades altas e críticas em dependências | 0 | 0 | 0 | pip-audit e npm audit no CI |
@@ -78,15 +80,15 @@ Confere se cada métrica foi medida na frequência da coluna "Frequência" do Pl
 | Q-06 | A cada release e a cada mudança de prompt | Nunca | **Não** | Prompt mudou na US-06 sem reavaliação; depende da SCRUM-47 |
 | Q-07 | A cada push (CI) | `test_duplicidade_carga.py` roda em todo push | Sim | — |
 | Q-08 | A cada release | R2 na regressão final | Sim | — |
-| Q-09 | Semanal e por release | Nunca | **Não** | Sem homologação nem monitor (SCRUM-51) |
-| Q-10 | A cada deploy (a partir da R2) | Nenhum deploy | N/A | Sem ambiente de deploy |
+| Q-09 | Semanal e por release | Nunca | **Não** | Homologação local só mede durante o deploy; sem monitor contínuo nem servidor acessível |
+| Q-10 | A cada deploy (a partir da R2) | Todo deploy registra tempo fora do ar e rollback; ensaio em todo PR e push (workflow `deploy-homologacao.yml`) | Sim (após o merge do #30) | — |
 | Q-11 | Releases 1, 2 e 4 | Nunca (R1 e R2) | **Não** | Sessão de usabilidade pendente (IMP-11) |
 | Q-12 | A cada sprint | S1, S2 e S3 | Sim | — |
 | Q-13 | A cada push e semanal | pip-audit e npm audit em todo push; Dependabot semanal (pip, npm, Actions) criado em 25/11 | Sim (após o merge do `.github/dependabot.yml`) | — |
 | Q-14 | A cada push (CI) | ruff, bandit e gitleaks em todo push | Sim | — |
 | Q-15 | Fim de cada sprint | S1 e S2 | Parcial | Falta a Sprint 3 (SM) |
 
-Resumo: 9 atendem, 2 parciais (Q-03 e Q-15, do SM), 3 não atendem (Q-06, Q-09, Q-11) e 1 não se aplica. As 3 que não atendem dependem de recurso externo (golden set, homologação, participantes). Registrar a justificativa na aba "Revisões" do plano ou ajustar a frequência na Retrospectiva.
+Resumo: 10 atendem, 2 parciais (Q-03 e Q-15, do SM) e 3 não atendem (Q-06, Q-09, Q-11). As 3 que não atendem dependem de recurso externo (golden set, homologação, participantes). Registrar a justificativa na aba "Revisões" do plano ou ajustar a frequência na Retrospectiva.
 
 ### Execução dos casos (Plano de Teste §13)
 
@@ -104,10 +106,10 @@ Sprint 3 (até 25/11):
 
 | Métrica | Sprint 3 |
 |---|---|
-| Casos planejados | CT-15/16 (US-07), CT-20/20b/21 (US-09), CT-24/25/25b (US-11), CT-26/27 (US-12), CT-54 (SCRUM-53) |
-| Automatizados e passando | CT-54 (7 cenários, PR #26); CT-56 texto (2 cenários, PR #23); ambos na regressão final |
-| Não executados | CT-15 a CT-27 da Sprint 3: `.feature` `@wip`, sem implementação das US-07, US-09, US-11 e US-12 |
-| Drivers verificados | DA-CONF-I3-01 aprovado (PR #26); DA-USAB-I3-03 texto aprovado (PR #23) |
+| Casos planejados | CT-15/16 (US-07), CT-20/20b/21 (US-09), CT-24/25/25b (US-11), CT-26/27 (US-12), CT-52 (SCRUM-51), CT-54 (SCRUM-53) |
+| Automatizados e passando | CT-54 (7 cenários, PR #26); CT-56 texto (2 cenários, PR #23); CT-26/27 (3 cenários API + 2 Cypress, PR #29); CT-52 (ensaio, PR #30) |
+| Não executados | CT-15/16, CT-20 a CT-21, CT-24 a CT-25b: `.feature` `@wip`, sem implementação das US-07, US-09 e US-11 |
+| Drivers verificados | DA-CONF-I3-01 aprovado (PR #26); DA-USAB-I3-03 texto aprovado (PR #23); DA-DISP-I2-02 aprovado na homologação local (PR #30) |
 
 ## 4. Verificação da DoD por item entregue
 
@@ -127,7 +129,9 @@ Critérios da DoD de US: PR revisado · critérios validados pelo QA · testes p
 | RK-02 (SCRUM-57) | Parcial (PR #15: revisão só comentada) | Sim (CT-51) | Sim | Sim | N/A | Sim | Pendente | **Aguarda aceite**; risco mitigado |
 | RK-03 parcial (SCRUM-58) | Sim (PR #23, aprovado) | Sim (CT-56 texto) | Sim | Sim (run 43205652714) | N/A | Sim | Pendente | **Aguarda aceite** |
 | DA-CONF-I3-01 (SCRUM-53) | Sim (PR #26, aprovado) | Sim (CT-54, 7 cenários) | Sim | Sim (run 45684180353) | N/A | Sim (`.env.example`, registro de riscos) | Pendente | **Aguarda aceite** |
-| US-07, US-09, US-11, US-12 | Sem PR | Não (cenários `@wip`) | Não | — | — | — | — | **Não entregues**; voltam ao backlog |
+| US-12 (SCRUM-36) | Pendente (PR #29) | Sim (CT-26, CT-27) | Sim | Sim (run 45689476387) | Pendente (homologação local disponível) | Sim | Pendente | **Aguarda revisão, merge e aceite** |
+| DA-DISP-I2-02 (SCRUM-51) | Pendente (PR #30) | Sim (CT-52) | Sim | Sim (runs 45691331013 e 45691331085) | Sim (homologação local) | Sim (`deploy/README.md`) | Pendente | **Aguarda revisão, merge e aceite** |
+| US-07, US-09, US-11 | Sem PR | Não (cenários `@wip`) | Não | — | — | — | — | **Não entregues**; voltam ao backlog |
 
 Atenção: o checklist de DoD na descrição do PR #13 marca "Homologação com número real" e "Aceite do PO" como feitos. Não há ambiente de homologação nem aceite registrado na issue; vale o que está nesta tabela.
 
@@ -148,7 +152,7 @@ Valores para a coluna "Sprint 2" da planilha `Definition_of_Done_HortiReg` (aba 
 
 | Nº | Critério | Sprint 3 | Evidência e observação |
 |---|---|---|---|
-| 2 | US concluídas atendem à DoD de US | Não | Nenhuma US da Sprint 3 entregue; SCRUM-53 mesclado, aguarda aceite do PO |
+| 2 | US concluídas atendem à DoD de US | Não | US-12 e SCRUM-51 com CI verde aguardam revisão e aceite; SCRUM-53 mesclado, aguarda aceite do PO |
 | 7 | Bugs da sprint registrados com evidência e severidade | Sim | BUG-06 (SCRUM-76) com passos, causa e severidade |
 | 8 | Nenhum bug crítico ou alto aberto sem plano | Sim | 0 alto aberto |
 | 9 | Regressão dos itens afetados executada | Sim | Regressão final de 25/11, run 45684180353 (seção 1) |
@@ -165,4 +169,5 @@ Valores para a coluna "Sprint 2" da planilha `Definition_of_Done_HortiReg` (aba 
 6. ~~Confirmar ou retirar os bugs de `docs/qa/Bugs_Sprint1_HortiReg.txt`~~ (feito em 25/11: reescrito com os IDs válidos).
 7. ~~Antes da Review da Sprint 3: regressão completa na `develop` integrada~~ (feito em 25/11, run 45684180353).
 8. Registrar a ata da Planning da Sprint 3 e as métricas da Sprint 3 (Q-03 e Q-15). Responsável: SM.
-9. Mesclar o `.github/dependabot.yml` (Q-13 semanal) e acompanhar os PRs que ele abrir. Responsável: DevOps.
+9. Revisar e mesclar os PRs #29 (US-12) e #30 (SCRUM-51); depois rodar `deploy/deploy.sh` na `develop` para registrar o primeiro deploy da R2. Responsável: QA e revisor.
+10. Mesclar o `.github/dependabot.yml` (Q-13 semanal) e acompanhar os PRs que ele abrir. Responsável: DevOps.

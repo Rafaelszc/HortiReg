@@ -1051,3 +1051,7 @@ details[open] .pedido-seta {
     grid-template-columns: 1fr;
   }
 }
+
+.conteudo > .segmentado {
+  margin-bottom: 20px;
+}

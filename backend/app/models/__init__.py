@@ -2,7 +2,7 @@ import enum
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String, func
+from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -80,10 +80,22 @@ class ItemPedido(Base):
     pedido: Mapped[Pedido] = relationship(back_populates="itens")
 
 
-class MensagemProcessada(Base):
-    """Ids de mensagem do WhatsApp já tratados; a Evolution pode reenviar o mesmo evento."""
+class StatusMensagem(str, enum.Enum):
+    PENDENTE = "PENDENTE"  # recebida, ainda sem resposta definitiva (em processamento ou aguardando retentativa)
+    PROCESSADA = "PROCESSADA"
+    FALHOU = "FALHOU"  # prazo da retentativa esgotado; o cliente foi avisado
 
-    __tablename__ = "mensagens_processadas"
+
+class MensagemRecebida(Base):
+    """Toda mensagem do WhatsApp é gravada ao chegar (RK-03). O id também barra o reenvio do mesmo evento."""
+
+    __tablename__ = "mensagens_recebidas"
 
     id: Mapped[str] = mapped_column(String(128), primary_key=True)
-    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    telefone: Mapped[str] = mapped_column(String(20), index=True)
+    payload: Mapped[dict] = mapped_column(JSON)
+    status: Mapped[StatusMensagem] = mapped_column(Enum(StatusMensagem), default=StatusMensagem.PENDENTE, index=True)
+    tentativas: Mapped[int] = mapped_column(default=0)
+    avisado: Mapped[bool] = mapped_column(default=False)  # já recebeu o "em processamento"
+    proxima_tentativa_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))

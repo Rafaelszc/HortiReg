@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from app import models  # noqa: F401  (registra as tabelas no metadata)
+from app.config import settings
 from app.database import Base, engine
 from app.routers import auth, pedidos, produtos, webhook
 from app.services import expiracao, fila
@@ -39,4 +40,5 @@ app.include_router(produtos.router)
 
 @app.get("/health", tags=["infra"])
 async def health():
-    return {"status": "ok"}
+    # versao: tag da imagem em homologação (APP_VERSAO); o deploy confere qual versão está no ar (SCRUM-51)
+    return {"status": "ok", "versao": settings.app_versao}

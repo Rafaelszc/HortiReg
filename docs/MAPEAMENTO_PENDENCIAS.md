@@ -38,7 +38,7 @@ Documento atualizado em **12/11/2026** refletindo as auditorias de qualidade, m�
 
 1. **Jira e Governança:**
    - [ ] Registrar o aceite formal do PO (Julio) nas US-06, US-08, US-10 e RK-02 para permitir a transição para Done (IMP-09).
-   - [ ] Cadastrar os bugs BUG-02, BUG-03, BUG-04 e BUG-05 como issues do tipo Bug no Jira (IMP-06).
+   - [x] Cadastrar os bugs como issues do tipo Bug no Jira (IMP-06): SCRUM-71 a SCRUM-76.
 
 2. **Ambiente e DevOps:**
    - [ ] Subir ambiente de homologação acessível para viabilizar testes reais de WhatsApp e deploy/rollback (IMP-07 / Q-09 / Q-10).

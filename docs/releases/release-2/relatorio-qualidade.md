@@ -22,8 +22,8 @@ Este relatório traz também os resultados da R1, que não tinham sido medidos (
 Ambiente: Postgres 16 descartável (`hortireg_test`), com Gemini e WhatsApp simulados (fixtures `llm_fake` e `whatsapp_fake`).
 
 Não executado:
-- Teste com WhatsApp real (homologação), porque o ambiente ainda não existe.
-- Cypress local; os cenários do painel rodam no CI.
+- Teste com WhatsApp real: a homologação local (PR #30) não inclui Evolution nem Gemini.
+- Cypress local só nos PRs #29 e #30 (6/6); a regressão final do painel rodou no CI.
 
 ## 2. Bugs encontrados × corrigidos
 

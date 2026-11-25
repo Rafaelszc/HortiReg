@@ -17,8 +17,8 @@ Documento atualizado em **12/11/2026** refletindo as auditorias de qualidade, m�
 
 ### 📁 `docs/qa/` (Qualidade)
 - [x] **`README.md`**: Matriz de documentos do plano de qualidade.
-- [x] **`Bugs_Sprint1_HortiReg.txt`**: Auditoria corrigida (IMP-10 resolvido): registra que a R1 não possuía o tipo Bug no Jira e documenta os 5 bugs identificados na Sprint 2 (SCRUM-71 a SCRUM-75), com 4 corrigidos e apenas 1 médio aberto (BUG-03 mitigado na SCRUM-53).
-- [x] **`Casos_de_Teste_Sprint1_HortiReg.txt`**: Matriz com os **61 casos de teste (CT-01 a CT-61)**, indicando quais já passam no CI (75 testes automatizados com 93,19% de cobertura) e guia passo a passo para implementar os pendentes.
+- [x] **`Bugs_Sprint1_HortiReg.txt`**: Auditoria corrigida (IMP-10 resolvido): registra que a R1 não possuía o tipo Bug no Jira e documenta os 6 bugs da R2 (SCRUM-71 a SCRUM-76) com passos, evidência e severidade: 5 corrigidos e 1 aberto (BUG-06, Baixa). Atualizado em 25/11.
+- [x] **`Casos_de_Teste_Sprint1_HortiReg.txt`**: Matriz com os **61 casos de teste (CT-01 a CT-61)**, retrato de 12/11 (75 testes, 93,19%). Matriz vigente: `docs/qa/casos-de-teste.md` (regressão final de 25/11: 84 testes, 93,27%).
 
 ### 📁 `docs/sm/` (Scrum Master)
 - [x] **`acordos-de-trabalho.txt`**: Papéis definidos para R1 a R4 (PO e DevOps juntos da R2 em diante).
@@ -41,7 +41,7 @@ Documento atualizado em **12/11/2026** refletindo as auditorias de qualidade, m�
    - [x] Cadastrar os bugs como issues do tipo Bug no Jira (IMP-06): SCRUM-71 a SCRUM-76.
 
 2. **Ambiente e DevOps:**
-   - [ ] Subir ambiente de homologação acessível para viabilizar testes reais de WhatsApp e deploy/rollback (IMP-07 / Q-09 / Q-10).
+   - [~] Homologação: local com deploy e rollback (PR #30, Q-10 medido). Falta servidor acessível para WhatsApp real e Q-09 (IMP-07).
    - [ ] Ajustar as regras de proteção de branch para remover o bypass e exigir aprovação formal de PRs (IMP-05 / Q-04).
 
 3. **Golden Set da IA:**

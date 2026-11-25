@@ -8,7 +8,7 @@ from sqlalchemy import text
 from app import models  # noqa: F401  (registra as tabelas no metadata)
 from app.database import Base, engine
 from app.routers import auth, pedidos, produtos, webhook
-from app.services import expiracao
+from app.services import expiracao, fila
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,9 +20,13 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         # create_all não altera enum já existente; status novo da US-10
         await conn.execute(text("ALTER TYPE statuspedido ADD VALUE IF NOT EXISTS 'EXPIRADO'"))
-    tarefa = asyncio.create_task(expiracao.rodar_periodicamente())
+    tarefas = [
+        asyncio.create_task(expiracao.rodar_periodicamente()),
+        asyncio.create_task(fila.rodar_periodicamente(webhook.processar_mensagem)),
+    ]
     yield
-    tarefa.cancel()
+    for tarefa in tarefas:
+        tarefa.cancel()
     await engine.dispose()
 
 

@@ -1,6 +1,6 @@
 # Casos de teste e rastreabilidade
 
-QA: Rafael (Release 2). Fonte dos IDs: Plano de Teste v1.1, seção 8. Atualizado em 12/11/2026 (regressão na `develop` `d1d8760`: 75 testes, cobertura 93,19%, Cypress verde).
+QA: Rafael (Release 2). Fonte dos IDs: Plano de Teste v1.1, seção 8. Atualizado em 25/11/2026 (regressão final da R2 na `develop` `cc394bf`, run RK_RUN: RK_RESULT).
 
 Cada caso aponta para a US (issue do Jira), para o cenário automatizado que o verifica e para a última execução. O cenário passando no CI é a evidência do critério de aceite. Os arquivos de teste ficam em:
 
@@ -59,9 +59,9 @@ CT-28 a CT-47 (US-13 a US-22) estão Pendentes. Os nomes dos cenários estão no
 | CT-51 | DA-CONF-I2-01 / SCRUM-50, RK-02 / SCRUM-57 | `pedido.feature` "Webhook reenviado não gera pedido duplicado" e `test_duplicidade_carga.py` (1.000 mensagens, 20% reenviadas) | Passou (CI) | 0 duplicados; PR #15; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-52 | DA-DISP-I2-02 / SCRUM-51 | Deploy com falha injetada | Pendente | Não existe ambiente de homologação |
 | CT-53 | DA-USAB-I2-03 / SCRUM-52 | Cronometrar a troca de preço no painel | Manual, pendente | Medir junto com o Q-11 |
-| CT-54 | DA-CONF-I3-01 / SCRUM-53 | Falha simulada da IA | Falhou | BUG-03 (SCRUM-73, aberto): no pedido por texto, o cliente fica sem resposta. Sprint 3 com a SCRUM-53 |
+| CT-54 | DA-CONF-I3-01 / SCRUM-53 | `fila_retentativa.feature`: 7 cenários (gravação e aviso, reprocessamento quando a IA volta, falha de 30 min com 3 clientes, reenvio durante a falha, prazo esgotado, áudio na retentativa, ordem de chegada) | Passou (CI) | PR #26 (mesclado em 25/11); regressão final [run RK_RUN](https://github.com/Rafaelszc/HortiReg/actions/runs/RK_RUN). Fecha o BUG-03 (SCRUM-73) |
 | CT-55 | DA-DISP-I3-02 / SCRUM-54 | Queda da sessão do WhatsApp | Pendente | R3 |
-| CT-56 | DA-USAB-I3-03 / SCRUM-55 | Mensagens de erro | Parcial | Áudio coberto (`pedido_audio.feature`, PR #18); falta o caso de texto (BUG-03 / SCRUM-73) |
+| CT-56 | DA-USAB-I3-03 / SCRUM-55 | Mensagens de erro: `pedido_audio.feature` (7 `@excecao`) e `pedido.feature` "IA fora do ar no pedido por texto" e "IA demora mais que o limite de espera no pedido por texto" | Passou (CI) | Áudio: PR #18; texto: PR #23 (SCRUM-58); [run 43205652714](https://github.com/Rafaelszc/HortiReg/actions/runs/43205652714) |
 | CT-57 | Segurança / US-05 | `webhook_seguranca.feature`: sem token, token incorreto, token na URL, token no cabeçalho, sem token configurado (dev) | Passou (CI) | BUG-04 (SCRUM-74) corrigido no PR #19; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-58 | Segurança / US-05 | Injeção de comando ou SQL tratada como texto | Parcial | Injeção no prompt coberta pelo CT-12; SQL só por ORM parametrizado, sem cenário próprio |
 | CT-59 | Segurança / US-02 | `test_auth_unidade.py::test_pedidos_exigem_admin`, `produtos.feature` "Catálogo exige autenticação" | Passou (CI) | Regressão de 11/11 |

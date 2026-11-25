@@ -43,7 +43,7 @@ Base: Planilha GP_RiscoBaseadoDefeitos e Tarefas TR-01 a TR-09 no Backlog
 - ITEM DO PLANO DE QUALIDADE: Q-08 (100% mensagens preservadas; reprocessadas em ≤ 5 min)
 - ESTRATÉGIA: Evitar
 - TAREFA NO JIRA: TR-03 (Persistência imediata ao receber, fila com retentativa e aviso ao cliente).
-- STATUS ATUAL: Mitigação implementada, aguardando revisão. BUG-03 (silêncio em erro de texto) corrigido no PR #23. Fila com retentativa (SCRUM-53) no PR #26, ainda sem revisão de outro membro, validação do QA e aceite do PO; o risco só passa a "Mitigado" depois disso.
+- STATUS ATUAL: Mitigação implementada e validada pelo QA (25/11). BUG-03 corrigido nos PRs #23 (aviso) e #26 (fila com retentativa, SCRUM-53, aprovado e mesclado). Q-08: 100% das mensagens preservadas na falha simulada de 30 min (regressão final da R2). Falta o aceite do PO para marcar "Mitigado".
 
 --------------------------------------------------------------------------------
 [RK-04 - Disponibilidade: Sobrecarga e Descarte no Horário de Pico Pré-Feira]

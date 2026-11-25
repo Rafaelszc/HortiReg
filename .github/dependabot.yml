@@ -1,0 +1,18 @@
+# Verificação semanal de dependências vulneráveis (Plano de Qualidade Q-13)
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+    target-branch: develop
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    target-branch: develop
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: develop

@@ -15,7 +15,7 @@ Este relatório traz também os resultados da R1, que não tinham sido medidos (
 | **12/11** | **`develop` integrada (`d1d8760`, PRs #13 a #21)** | **CI completo ([run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377))** | **75/75 passaram, cobertura 93,19%; `ruff` limpo; Cypress: todos os specs passaram; gitleaks, bandit, pip-audit e npm audit sem achados** |
 | 12/11 | `develop` (`1d3ded2`, após PRs #22 a #25) | CI de push ([run 43205652714](https://github.com/Rafaelszc/HortiReg/actions/runs/43205652714)) | 77/77, cobertura 93,32%; Cypress `@smoke` verde; ruff e segurança limpos |
 | 25/11 | PR #26 (SCRUM-53, fila com retentativa), antes do merge | CI de PR ([run 45539392921](https://github.com/Rafaelszc/HortiReg/actions/runs/45539392921)) | 84/84, cobertura 93,27%; Cypress `@smoke or @regressao` verde (4/4); gitleaks, bandit, pip-audit e npm audit sem achados |
-| **25/11** | **Regressão final da R2: `develop` `cc394bf` (com o #26) + docs, PR #RK_PR** | **CI de PR completo ([run RK_RUN](https://github.com/Rafaelszc/HortiReg/actions/runs/RK_RUN)): `pytest --cov=app --cov-fail-under=80`, Cypress `(@smoke or @regressao) and not @wip`** | **RK_RESULT. Cobertura por arquivo: [`cobertura-regressao-final.txt`](cobertura-regressao-final.txt)** |
+| **25/11** | **Regressão final da R2: `develop` `cc394bf` (com o #26) + docs, PR #27** | **CI de PR completo ([run 45684180353](https://github.com/Rafaelszc/HortiReg/actions/runs/45684180353)): `pytest --cov=app --cov-fail-under=80`, Cypress `(@smoke or @regressao) and not @wip`** | **84/84 passaram, cobertura 93,27%; Cypress 4/4; ruff, gitleaks, bandit, pip-audit e npm audit sem achados. Cobertura por arquivo: [`cobertura-regressao-final.txt`](cobertura-regressao-final.txt)** |
 
 Ambiente: Postgres 16 descartável (`hortireg_test`), com Gemini e WhatsApp simulados (fixtures `llm_fake` e `whatsapp_fake`).
 
@@ -47,14 +47,14 @@ N/M = não medido, com o motivo na observação.
 
 | ID | Item | Meta | R1 | R2 (25/11, S3) | Observação |
 |---|---|---|---|---|---|
-| Q-01 | Cobertura de testes | ≥ 70% (proposta v1.1: ≥ 80%) | 91% | RK_COV (regressão final) | Atinge a meta; relatório salvo em `cobertura-regressao-final.txt` |
+| Q-01 | Cobertura de testes | ≥ 70% (proposta v1.1: ≥ 80%) | 91% | 93,27% (regressão final) | Atinge a meta; relatório salvo em `cobertura-regressao-final.txt` |
 | Q-02 | Bugs críticos e altos abertos | 0 no fechamento | N/M (não existia o tipo Bug) | **0** | Atinge; nenhum bug aberto |
 | Q-03 | US com Gherkin de sucesso e exceção | 100% | 100% (US-01 a US-05) | 100% (US-06 a US-12) | Conferido nas issues |
 | Q-04 | PRs integrados com ≥ 1 revisão | 100% | **0% (0 de 12)** | **57% com aprovação (8 de 14)** | Aprovados: #18, #19, #20, #22 a #26. Só com comentário: #13 a #17. Sem revisão: #21. Desde a proteção de `main` e `develop` (12/11), 100% dos PRs mesclados foram aprovados (#22 a #26) |
 | Q-05 | CI verde na branch principal | ≥ 90% | `main` 100% (2/2); `develop` 71% (5/7) | `develop` 100% (5/5 concluídos) | Outros 3 runs foram cancelados por concorrência (substituídos pelo merge seguinte), não falharam |
 | Q-06 | Precisão da extração da IA | ≥ 90% | N/M | N/M | Falta o conjunto de 50 áudios (SCRUM-47) |
 | Q-07 | Pedidos duplicados em 1.000 mensagens | 0 | 0 (teste com 1 reenvio) | **0 (1.000 mensagens, 200 reenvios)** | PR #15 |
-| Q-08 | Mensagens preservadas com a IA fora do ar | 100%; reprocessadas em ≤ 5 min | N/M | **100%** | `fila_retentativa.feature` "Falha de 30 minutos sem perder nenhuma mensagem" (3 clientes, reprocessadas em até 5 min), na regressão final (run RK_RUN). Teste com IA simulada; falha real só em homologação |
+| Q-08 | Mensagens preservadas com a IA fora do ar | 100%; reprocessadas em ≤ 5 min | N/M | **100%** | `fila_retentativa.feature` "Falha de 30 minutos sem perder nenhuma mensagem" (3 clientes, reprocessadas em até 5 min), na regressão final (run 45684180353). Teste com IA simulada; falha real só em homologação |
 | Q-09 | Disponibilidade de 05h a 18h | ≥ 95% em homologação | N/A | N/M | Sem homologação |
 | Q-10 | Downtime por deploy e rollback | ≤ 60 s e ≤ 2 min | N/A | N/M | SCRUM-51 sem ambiente |
 | Q-11 | Usabilidade | ver plano | N/M | N/M | Sessão com 5 a 10 pessoas pendente |
@@ -125,7 +125,7 @@ Critérios da DoD de US: PR revisado · critérios validados pelo QA · testes p
 | US-10 (SCRUM-34) | Parcial (PR #14: revisão só comentada) | Sim (CT-22 a CT-23b) | Sim | Sim | Pendente | Sim | Pendente | **Aguarda aceite** |
 | RK-02 (SCRUM-57) | Parcial (PR #15: revisão só comentada) | Sim (CT-51) | Sim | Sim | N/A | Sim | Pendente | **Aguarda aceite**; risco mitigado |
 | RK-03 parcial (SCRUM-58) | Sim (PR #23, aprovado) | Sim (CT-56 texto) | Sim | Sim (run 43205652714) | N/A | Sim | Pendente | **Aguarda aceite** |
-| DA-CONF-I3-01 (SCRUM-53) | Sim (PR #26, aprovado) | Sim (CT-54, 7 cenários) | Sim | Sim (run RK_RUN) | N/A | Sim (`.env.example`, registro de riscos) | Pendente | **Aguarda aceite** |
+| DA-CONF-I3-01 (SCRUM-53) | Sim (PR #26, aprovado) | Sim (CT-54, 7 cenários) | Sim | Sim (run 45684180353) | N/A | Sim (`.env.example`, registro de riscos) | Pendente | **Aguarda aceite** |
 | US-07, US-09, US-11, US-12 | Sem PR | Não (cenários `@wip`) | Não | — | — | — | — | **Não entregues**; voltam ao backlog |
 
 Atenção: o checklist de DoD na descrição do PR #13 marca "Homologação com número real" e "Aceite do PO" como feitos. Não há ambiente de homologação nem aceite registrado na issue; vale o que está nesta tabela.
@@ -150,8 +150,8 @@ Valores para a coluna "Sprint 2" da planilha `Definition_of_Done_HortiReg` (aba 
 | 2 | US concluídas atendem à DoD de US | Não | Nenhuma US da Sprint 3 entregue; SCRUM-53 mesclado, aguarda aceite do PO |
 | 7 | Bugs da sprint registrados com evidência e severidade | Pendente | Falta abrir a issue da reserva de 120 s |
 | 8 | Nenhum bug crítico ou alto aberto sem plano | Sim | 0 alto aberto |
-| 9 | Regressão dos itens afetados executada | Sim | Regressão final de 25/11, run RK_RUN (seção 1) |
-| 21 | Gherkin da US automatizado e passando no CI | Sim | `fila_retentativa.feature` no run RK_RUN |
+| 9 | Regressão dos itens afetados executada | Sim | Regressão final de 25/11, run 45684180353 (seção 1) |
+| 21 | Gherkin da US automatizado e passando no CI | Sim | `fila_retentativa.feature` no run 45684180353 |
 | 22 | Mensagens do bot revisadas (sem silêncio) | Sim | Texto: PR #23; fila: aviso "em processamento" e aviso final (PR #26) |
 
 ## 5. Ações para fechar a R2
@@ -162,6 +162,6 @@ Valores para a coluna "Sprint 2" da planilha `Definition_of_Done_HortiReg` (aba 
 4. ~~Aprovar e mesclar o PR #26, fechar o BUG-03 e confirmar o Q-08~~ (feito em 25/11). Falta: abrir a issue da reserva de 120 s e mudar o BUG-03 (SCRUM-73) para Done no Jira. Responsáveis: Julio e QA.
 5. Homologar US-06, US-08 e US-10 com número real quando o ambiente existir (SCRUM-51). Responsável: DevOps.
 6. ~~Confirmar ou retirar os bugs de `docs/qa/Bugs_Sprint1_HortiReg.txt`~~ (feito em 25/11: reescrito com os IDs válidos).
-7. ~~Antes da Review da Sprint 3: regressão completa na `develop` integrada~~ (feito em 25/11, run RK_RUN).
+7. ~~Antes da Review da Sprint 3: regressão completa na `develop` integrada~~ (feito em 25/11, run 45684180353).
 8. Registrar a ata da Planning da Sprint 3 e as métricas da Sprint 3 (Q-03 e Q-15). Responsável: SM.
 9. Mesclar o `.github/dependabot.yml` (Q-13 semanal) e acompanhar os PRs que ele abrir. Responsável: DevOps.

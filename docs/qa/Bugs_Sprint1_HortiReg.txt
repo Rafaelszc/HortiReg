@@ -60,7 +60,7 @@ EVIDÊNCIA: cenários "IA fora do ar no pedido por texto" e "IA demora mais que 
 CORREÇÃO:
   - PR #23 (SCRUM-58, mesclado em 12/11): cliente avisado em erro ou demora. Resolve o silêncio.
   - PR #26 (SCRUM-53, mesclado em 25/11): mensagem gravada ao chegar e reprocessada com retentativa.
-STATUS: Corrigido e retestado (regressão final, CI run RK_RUN).
+STATUS: Corrigido e retestado (regressão final, CI run 45684180353).
 
 ---
 [BUG-04] SCRUM-74

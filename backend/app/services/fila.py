@@ -20,7 +20,7 @@ from app.services import security, whatsapp
 
 log = logging.getLogger("sgv.fila")
 
-MSG_EM_PROCESSAMENTO = "Recebi seu pedido e estou processando. Te respondo em instantes. ⏳"
+MSG_EM_PROCESSAMENTO = "Recebi sua mensagem e estou processando. Te respondo em instantes. ⏳"
 
 Processador = Callable[[dict], Awaitable[None]]
 
@@ -117,7 +117,10 @@ async def processar(mensagem_id: str, processador: Processador) -> None:
 
 async def _encerrar(mensagem_id: str, status: StatusMensagem) -> None:
     async with SessionLocal() as session:
-        await session.execute(update(MensagemRecebida).where(MensagemRecebida.id == mensagem_id).values(status=status))
+        # LGPD: fora da fila, fica só o id (barra o reenvio); o conteúdo é apagado
+        await session.execute(
+            update(MensagemRecebida).where(MensagemRecebida.id == mensagem_id).values(status=status, payload={})
+        )
         await session.commit()
 
 
@@ -129,6 +132,7 @@ async def _registrar_falha(mensagem_id: str, falha: FalhaTransitoria) -> None:
         avisar = not desistir and not msg.avisado
         if desistir:
             msg.status = StatusMensagem.FALHOU
+            msg.payload = {}
         else:
             msg.proxima_tentativa_em = agora() + espera(msg.tentativas)
         await session.commit()

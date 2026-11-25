@@ -111,7 +111,7 @@ O webhook já está configurado globalmente no `docker-compose.yml` (`WEBHOOK_GL
 ### 4.4 Testar o fluxo completo
 
 1. De **outro** número, mande para o número conectado: *"quero 2 quilos de tomate e 3 maços de coentro"* (ou um áudio).
-2. O bot responde com o resumo e pede **1** (confirmar), **2** (corrigir) ou **3** (cancelar).
+2. O bot responde com o resumo. Na primeira compra, ele pede o endereço (rua e número); com o endereço completo, pede **1** (confirmar), **2** (corrigir) ou **3** (cancelar).
 3. Responda **1** (SIM também vale).
 4. Veja os dados: http://localhost:8000/pedidos e http://localhost:8000/pedidos/separacao (totais somados dos pedidos confirmados).
 
@@ -127,6 +127,14 @@ O cliente pode mandar o pedido em nota de voz; o áudio passa pela mesma extraç
 | Formato não suportado | Aceitos: `audio/ogg` (nota de voz do WhatsApp, inclusive `codecs=opus`), `audio/mpeg` (mp3), `audio/aac` e `audio/wav`. |
 | Ininteligível | A IA não extraiu nenhum item. |
 | Falha técnica | Erro ao baixar o áudio, erro da IA ou espera maior que `AUDIO_TIMEOUT_SEGUNDOS` (padrão 45 s). O erro vai para o log, sem o conteúdo do áudio. |
+
+#### Endereço de entrega (US-11)
+
+- O pedido só é confirmado com **rua e número** (`s/n` vale). Bairro e cidade são opcionais.
+- O endereço pode vir sozinho, junto do pedido ou em partes, por texto ou áudio. O que falta fica em `rascunhos_endereco`; completo, vai para `clientes.endereco` e vale para os próximos pedidos.
+- Quando só falta o número, uma resposta como `2` é o número da casa, sem passar pela IA. Para cancelar nesse momento, o cliente escreve `cancelar`.
+- Para trocar o endereço, o cliente manda o novo. Enquanto a troca estiver incompleta, o pedido não é confirmado. Cancelar o pedido, ou fazer um novo, descarta a troca incompleta. A troca vale também para pedidos já confirmados, porque o endereço fica no cliente.
+- LGPD: o endereço não vai para os logs, os erros do banco não listam valores (`hide_parameters`) e o conteúdo de `mensagens_recebidas` é apagado quando a mensagem sai da fila (`PROCESSADA` ou `FALHOU`). Registros gravados antes da US-11 não são limpos automaticamente. O texto do cliente é enviado ao Gemini para interpretação.
 
 ## 5. Comandos do dia a dia
 
@@ -179,11 +187,10 @@ No PowerShell, defina as mesmas variáveis com `$env:NOME = "valor"` antes de `p
 ## 8. Próximos passos (roadmap)
 
 1. **Catálogo e admin**: endpoints CRUD de `Produto` + comandos de admin pelo WhatsApp (`ADMIN_NUMBERS`), casando `ItemPedido.nome` com `Produto` e calculando valor estimado.
-2. **Endereço do cliente**: pedir e salvar o endereço na primeira compra.
-3. **Seleção de pedidos para entrega** (status `CONFIRMADO` → carregado no veículo).
-4. **Rotas**: geocodificar endereços (Google Geocoding API) e resolver o TSP com `ortools`; gerar o link `https://www.google.com/maps/dir/...`.
-5. **Painel React** consumindo esta API (CORS + autenticação).
-6. **Alembic**, testes dos serviços e deploy (VPS com Docker Compose).
+2. **Seleção de pedidos para entrega** (status `CONFIRMADO` → carregado no veículo).
+3. **Rotas**: geocodificar endereços (Google Geocoding API) e resolver o TSP com `ortools`; gerar o link `https://www.google.com/maps/dir/...`.
+4. **Painel React** consumindo esta API (CORS + autenticação).
+5. **Alembic**, testes dos serviços e deploy (VPS com Docker Compose).
 
 ## 9. Para estudar
 

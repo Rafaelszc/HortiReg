@@ -38,6 +38,18 @@ class Cliente(Base):
     pedidos: Mapped[list["Pedido"]] = relationship(back_populates="cliente")
 
 
+class RascunhoEndereco(Base):
+    """Endereço recebido em partes (US-11). Apagado quando completa; só então vai para Cliente.endereco."""
+
+    __tablename__ = "rascunhos_endereco"
+
+    cliente_id: Mapped[int] = mapped_column(ForeignKey("clientes.id"), primary_key=True)
+    rua: Mapped[str | None] = mapped_column(String(120))
+    numero: Mapped[str | None] = mapped_column(String(20))
+    bairro: Mapped[str | None] = mapped_column(String(60))
+    cidade: Mapped[str | None] = mapped_column(String(40))
+
+
 class Produto(Base):
     __tablename__ = "produtos"
 
@@ -93,7 +105,7 @@ class MensagemRecebida(Base):
 
     id: Mapped[str] = mapped_column(String(128), primary_key=True)
     telefone: Mapped[str] = mapped_column(String(20), index=True)
-    payload: Mapped[dict] = mapped_column(JSON)
+    payload: Mapped[dict] = mapped_column(JSON)  # esvaziado quando a mensagem sai da fila (LGPD, US-11)
     status: Mapped[StatusMensagem] = mapped_column(Enum(StatusMensagem), default=StatusMensagem.PENDENTE, index=True)
     tentativas: Mapped[int] = mapped_column(default=0)
     avisado: Mapped[bool] = mapped_column(default=False)  # já recebeu o "em processamento"

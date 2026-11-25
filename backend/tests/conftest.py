@@ -18,13 +18,14 @@ from app import models  # noqa: F401
 from app.config import settings
 from app.database import Base
 from app.main import app
-from app.models import Admin, Produto
-from app.schemas.pedido import ItemExtraido, PedidoExtraido
+from app.models import Admin, Cliente, Produto
+from app.schemas.pedido import EnderecoExtraido, ItemExtraido, PedidoExtraido
 from app.services import llm, security, whatsapp
 
 LOGIN = "admin"
 SENHA = "senha-de-teste-123"
 TELEFONE = "5583999990000"
+ENDERECO = "Rua das Flores, 120, Catolé, Campina Grande"
 
 # Engine própria e sem pool: cada rodar() usa um loop novo, e o app usa o dele no TestClient.
 _engine = create_async_engine(settings.database_url, poolclass=NullPool)
@@ -100,6 +101,17 @@ def catalogo():
 
 
 @pytest.fixture
+def cliente_com_endereco():
+    """Cliente do TELEFONE com endereço salvo: sem ele o pedido não pode ser confirmado (US-11)."""
+
+    async def _criar(session):
+        session.add(Cliente(telefone=TELEFONE, nome="Maria", endereco=ENDERECO))
+        await session.commit()
+
+    rodar(_criar)
+
+
+@pytest.fixture
 def whatsapp_fake(monkeypatch):
     """Guarda as mensagens enviadas em vez de chamar a Evolution API."""
     enviadas: list[tuple[str, str]] = []
@@ -128,8 +140,11 @@ def llm_fake(monkeypatch):
 
     monkeypatch.setattr(llm, "extrair_pedido", extrair_pedido)
 
-    def responder(*itens: tuple[str, float, str]) -> None:
-        estado["resposta"] = PedidoExtraido(itens=[ItemExtraido(nome=n, quantidade=q, unidade=u) for n, q, u in itens])
+    def responder(*itens: tuple[str, float, str], endereco: dict | None = None) -> None:
+        estado["resposta"] = PedidoExtraido(
+            itens=[ItemExtraido(nome=n, quantidade=q, unidade=u) for n, q, u in itens],
+            endereco=EnderecoExtraido(**endereco) if endereco else None,
+        )
 
     estado["responder"] = responder
     return estado

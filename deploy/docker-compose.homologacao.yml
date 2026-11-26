@@ -1,0 +1,45 @@
+# Homologação (SCRUM-51 / DA-DISP-I2-02): imagens com tag de versão, sem hot reload e sem Evolution/Gemini reais.
+# Use pelo script: deploy/deploy.sh (não suba à mão, senão a versão em execução não fica registrada).
+name: hortireg-homolog
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - homolog_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  api:
+    image: hortireg-api:${VERSAO:?defina VERSAO}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - homologacao.env
+    environment:
+      APP_VERSAO: ${VERSAO}
+      # FALHA_INJETADA no deploy.sh troca este valor por um banco inexistente (simula migração quebrada)
+      DATABASE_URL: ${API_DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}}
+    ports:
+      - "${HOMOLOG_API_PORTA:-8001}:8000"
+
+  frontend:
+    image: hortireg-painel:${VERSAO}
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${HOMOLOG_PAINEL_PORTA:-8091}:80"
+
+volumes:
+  homolog_postgres:

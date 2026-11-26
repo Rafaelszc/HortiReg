@@ -1,0 +1,35 @@
+Regressão final da Release 2 · relatório do pytest-cov (Plano de Qualidade Q-01)
+CI: https://github.com/Rafaelszc/HortiReg/actions/runs/45684180353 (pull_request, PR #27, develop cc394bf + docs, 25/11/2026)
+Comando: pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
+Resultado: 84 passed; Cypress (@smoke or @regressao) and not @wip: 4/4
+
+Name                           Stmts   Miss  Cover   Missing
+------------------------------------------------------------
+app/__init__.py                    0      0   100%
+app/config.py                     31      1    97%   55
+app/database.py                   11      0   100%
+app/main.py                       28      0   100%
+app/models/__init__.py            67      0   100%
+app/routers/__init__.py            0      0   100%
+app/routers/auth.py               50      0   100%
+app/routers/pedidos.py            16      2    88%   15-16
+app/routers/produtos.py           22      1    95%   30
+app/routers/webhook.py           130      5    96%   58, 63, 105, 125-126
+app/schemas/__init__.py            0      0   100%
+app/schemas/pedido.py             13      0   100%
+app/schemas/produto.py            22      0   100%
+app/seed.py                       24      2    92%   36-37
+app/services/__init__.py           0      0   100%
+app/services/audio.py             25      0   100%
+app/services/catalogo.py          27      0   100%
+app/services/expiracao.py         25      5    80%   46-50
+app/services/fila.py              95      9    91%   75, 111-113, 143-145, 177-178
+app/services/llm.py               18     10    44%   20-22, 31-46
+app/services/produtos.py          27      1    96%   34
+app/services/security.py          26      0   100%
+app/services/webhook_auth.py      10      0   100%
+app/services/whatsapp.py          16     10    38%   9, 14-17, 22-28
+------------------------------------------------------------
+TOTAL                            683     46    93%
+
+Required test coverage of 80% reached. Total coverage: 93.27%

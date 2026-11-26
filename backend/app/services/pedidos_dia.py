@@ -1,11 +1,10 @@
 """Pedidos confirmados do dia para o painel (US-12)."""
 
 from datetime import datetime, time, timedelta, timezone
-from decimal import Decimal
 
 from app.config import settings
 from app.models import Pedido
-from app.services import security
+from app.services import catalogo, security
 
 
 def intervalo_de_hoje() -> tuple[datetime, datetime]:
@@ -18,9 +17,8 @@ def intervalo_de_hoje() -> tuple[datetime, datetime]:
 
 def resumo(pedido: Pedido) -> dict:
     """Cliente, itens, endereço, valor e status. Item fora do catálogo (sem preço) não entra no valor."""
-    valor = sum(
-        (i.quantidade * i.preco_unitario for i in pedido.itens if i.preco_unitario is not None), Decimal("0")
-    )
+    # Mesmo cálculo do resumo do WhatsApp (arredonda por item), senão painel e mensagem divergem
+    valor = catalogo.total_estimado(pedido.itens)
     return {
         "id": pedido.id,
         "cliente": pedido.cliente.nome or pedido.cliente.telefone,

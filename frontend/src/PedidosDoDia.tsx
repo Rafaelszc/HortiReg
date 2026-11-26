@@ -58,7 +58,7 @@ export default function PedidosDoDia({ token, onExpirada }: Props) {
       {pedidos && pedidos.length > 0 && (
         <ul className="lista">
           {pedidos.map((p) => (
-            <li key={p.id} className="pedido" data-cy="pedido-dia">
+            <li key={p.id} className="pedido pedido-dia" data-cy="pedido-dia">
               <div className="pedido-info">
                 <p className="pedido-cliente" data-cy="pedido-cliente">
                   {p.cliente} <span className="pedido-id">#{p.id}</span>

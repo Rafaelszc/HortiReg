@@ -1055,3 +1055,27 @@ details[open] .pedido-seta {
 .conteudo > .segmentado {
   margin-bottom: 20px;
 }
+
+/* Pedidos do dia (US-12): cartão sem <details>, o espaçamento vem do <li> */
+.pedido-dia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+.pedido-dia .pedido-info {
+  flex: 1;
+}
+
+.pedido-dia .pedido-obs {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .pedido-dia {
+    flex-wrap: wrap;
+    padding: 14px 16px;
+  }
+}

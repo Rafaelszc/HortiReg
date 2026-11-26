@@ -4,7 +4,7 @@ from decimal import Decimal
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from app.models import Cliente, ItemPedido, Pedido, StatusPedido
-from app.services import pedidos_dia
+from app.services import catalogo, pedidos_dia
 from tests.conftest import itens_do_texto, rodar
 
 scenarios("features/pedidos_do_dia.feature")
@@ -102,3 +102,14 @@ def test_item_fora_do_catalogo_nao_soma_no_valor(token, client):
     assert p["valor"] == 13.0
     assert p["cliente"] == "5583900000005"  # sem nome, mostra o telefone
     assert len(p["itens"]) == 2
+
+
+def test_valor_igual_ao_resumo_do_whatsapp(token, client):
+    # 0,25 kg x R$ 6,50 = 1,625 por item; o WhatsApp arredonda cada item, então o painel também
+    itens = (("tomate", 0.25, "kg", "6.50"), ("cebola", 0.25, "kg", "6.50"))
+    _criar_pedido("5583900000006", StatusPedido.CONFIRMADO, datetime.now(UTC), itens=itens)
+    p = client.get("/pedidos/dia", headers=token).json()[0]
+    esperado = catalogo.total_estimado(
+        [ItemPedido(nome=n, quantidade=Decimal(str(q)), unidade=u, preco_unitario=Decimal(pr)) for n, q, u, pr in itens]
+    )
+    assert p["valor"] == float(esperado) == 3.24

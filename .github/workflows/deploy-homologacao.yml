@@ -1,0 +1,40 @@
+name: Deploy homologação (ensaio de rollback)
+
+# DA-DISP-I2-02 / SCRUM-51: em PR e push na develop ou na main, sobe a homologação no runner,
+# faz um deploy normal e um com falha injetada e confere downtime ≤ 60 s e rollback ≤ 2 min (Q-10).
+on:
+  push:
+    branches: [develop, main]
+    paths: ["backend/**", "frontend/**", "deploy/**", ".github/workflows/deploy-homologacao.yml"]
+  pull_request:
+    branches: [develop, main]
+    paths: ["backend/**", "frontend/**", "deploy/**", ".github/workflows/deploy-homologacao.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-homologacao-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ensaio:
+    name: Deploy e rollback
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensaio de deploy e rollback
+        run: deploy/ensaio-rollback.sh
+      - name: Registro dos deploys
+        if: always()
+        run: cat deploy/registro-deploys.csv >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: registro-deploys
+          path: deploy/registro-deploys.csv
+      - name: Derrubar homologação
+        if: always()
+        run: VERSAO=x docker compose -f deploy/docker-compose.homologacao.yml --env-file deploy/homologacao.env down -v || true

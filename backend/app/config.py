@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Pedido por texto (RK-03): espera máxima pela IA antes de avisar o cliente
     ia_texto_timeout_segundos: float = 30
 
+    # Versão em execução (o deploy define APP_VERSAO com a tag da imagem)
+    app_versao: str = "dev"
+
     # Fuso da feira em horas a partir do UTC (Campina Grande: -3). Define o "hoje" dos pedidos do dia (US-12)
     fuso_horario_utc: int = -3
 

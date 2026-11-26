@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # Versão em execução (o deploy define APP_VERSAO com a tag da imagem)
     app_versao: str = "dev"
 
+    # Fuso da feira em horas a partir do UTC (Campina Grande: -3). Define o "hoje" dos pedidos do dia (US-12)
+    fuso_horario_utc: int = -3
+
     # Fila de retentativa (RK-03 / DA-CONF-I3-01): a espera dobra a cada falha até o teto; vencido o prazo, desiste
     fila_espera_inicial_segundos: float = 15
     fila_espera_maxima_segundos: float = 300

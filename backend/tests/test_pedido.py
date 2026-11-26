@@ -16,7 +16,7 @@ OUTRO_TELEFONE = "5583988887777"
 
 
 @given("um catálogo ativo com tomate e banana", target_fixture="ctx")
-def _catalogo(catalogo, client, whatsapp_fake, llm_fake):
+def _catalogo(catalogo, cliente_com_endereco, client, whatsapp_fake, llm_fake):
     return {"client": client, "enviadas": whatsapp_fake, "llm": llm_fake}
 
 

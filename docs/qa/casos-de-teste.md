@@ -42,7 +42,7 @@ Cada caso aponta para a US (issue do Jira), para o cenário automatizado que o v
 | CT-22 | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Pedido expira sem confirmação" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-23 | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Confirmação depois da expiração" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-23b | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Pedido dentro do prazo não expira" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
-| CT-24, CT-25, CT-25b | US-11 / SCRUM-35 | `pedido_endereco.feature` (`@wip`); o CT-25b verifica a LGPD (endereço fora dos logs) | Especificado | Sprint 3 |
+| CT-24, CT-25, CT-25b | US-11 / SCRUM-35 | `pedido_endereco.feature`, com testes complementares em `test_endereco.py`; o CT-25b verifica a LGPD (endereço fora dos logs) | Passou (local) | IA e WhatsApp simulados |
 | CT-26, CT-27 | US-12 / SCRUM-36 | API: `backend/tests/features/pedidos_do_dia.feature` (lista do dia, dia vazio, exige autenticação); painel: Cypress `pedidos_do_dia.feature` (API simulada) | Passou (CI) | PR #29 em revisão; [run 45689476387](https://github.com/Rafaelszc/HortiReg/actions/runs/45689476387). Endereço vem de `Cliente.endereco` (US-11 pendente) |
 
 ## Releases 3 e 4 (planejados)

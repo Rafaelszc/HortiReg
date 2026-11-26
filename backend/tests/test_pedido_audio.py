@@ -13,7 +13,7 @@ scenarios("features/pedido_audio.feature")
 
 
 @given("um catálogo ativo com tomate e macaxeira", target_fixture="ctx")
-def _catalogo(client, whatsapp_fake, llm_fake, audio_fake):
+def _catalogo(cliente_com_endereco, client, whatsapp_fake, llm_fake, audio_fake):
     async def _criar(session):
         session.add_all(
             [

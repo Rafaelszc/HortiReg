@@ -47,7 +47,7 @@ def _enviar(ctx, evento) -> None:
 
 
 @given("um catálogo ativo com tomate e banana", target_fixture="ctx")
-def _catalogo(catalogo, client, whatsapp_fake, llm_fake, audio_fake, relogio):
+def _catalogo(catalogo, cliente_com_endereco, client, whatsapp_fake, llm_fake, audio_fake, relogio):
     return {"client": client, "enviadas": whatsapp_fake, "llm": llm_fake, "audio": audio_fake, "relogio": relogio}
 
 

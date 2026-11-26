@@ -1,6 +1,6 @@
 # language: pt
-# Escrito pelo QA a partir dos critérios da SCRUM-35. Tirar o @wip quando os passos existirem.
-@wip @US-11 @R2
+# Escrito pelo QA a partir dos critérios da SCRUM-35.
+@US-11 @R2
 Funcionalidade: Endereço de entrega do cliente (US-11)
 
   # CT-24

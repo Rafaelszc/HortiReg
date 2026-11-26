@@ -10,7 +10,12 @@ do Brasil, incluindo gírias e expressões regionais (ex: "meia dúzia", "um qui
 Normalize nomes para o singular e minúsculo. Se a quantidade for ambígua, use 1.
 Use "kg" para quilo, quilos e kilo. A mensagem pode ser um áudio: ouça-o inteiro e extraia só o que foi dito.
 Se a mensagem não for um pedido, ou o áudio estiver inaudível ou ininteligível, devolva a lista de itens
-vazia. Nunca invente produtos."""
+vazia. Nunca invente produtos.
+A mensagem pode trazer o endereço de entrega, sozinho ou junto do pedido. Nesse caso preencha "endereco"
+separando rua, numero, bairro e cidade, só com o que o cliente disse; nunca complete nem adivinhe. Preencha
+"rua" apenas com nome de rua, avenida ou travessa. "numero" é o número da casa, nunca a quantidade de um
+produto; use "s/n" se o cliente disser que não tem. Sem endereço na mensagem, "endereco" fica vazio.
+Não repita o endereço na observação."""
 
 _client: genai.Client | None = None
 

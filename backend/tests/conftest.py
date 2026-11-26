@@ -20,7 +20,7 @@ from app.database import Base
 from app.main import app
 from app.models import Admin, Produto
 from app.schemas.pedido import ItemExtraido, PedidoExtraido
-from app.services import llm, security, whatsapp
+from app.services import llm, security, telegram, whatsapp
 
 LOGIN = "admin"
 SENHA = "senha-de-teste-123"
@@ -109,6 +109,37 @@ def whatsapp_fake(monkeypatch):
 
     monkeypatch.setattr(whatsapp, "enviar_texto", enviar_texto)
     return enviadas
+
+
+@pytest.fixture
+def telegram_fake(monkeypatch):
+    """Guarda mensagens e callbacks enviados em vez de chamar a Bot API do Telegram."""
+    estado: dict[str, Any] = {
+        "enviadas": [],
+        "callbacks": [],
+        "audio_dados": b"audio-telegram-falso",
+        "audio_erro": None,
+        "audio_baixados": 0,
+    }
+
+    async def enviar_texto(chat_id: int | str, texto: str, parse_mode=None, reply_markup=None) -> dict:
+        estado["enviadas"].append((chat_id, texto, reply_markup))
+        return {"ok": True}
+
+    async def responder_callback(callback_query_id: str, texto=None) -> dict:
+        estado["callbacks"].append((callback_query_id, texto))
+        return {"ok": True}
+
+    async def baixar_audio(file_id: str) -> bytes:
+        estado["audio_baixados"] += 1
+        if estado["audio_erro"]:
+            raise estado["audio_erro"]
+        return estado["audio_dados"]
+
+    monkeypatch.setattr(telegram, "enviar_texto", enviar_texto)
+    monkeypatch.setattr(telegram, "responder_callback", responder_callback)
+    monkeypatch.setattr(telegram, "baixar_audio", baixar_audio)
+    return estado
 
 
 @pytest.fixture

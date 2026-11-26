@@ -14,6 +14,15 @@ class Settings(BaseSettings):
     evolution_api_key: str = ""
     evolution_instance: str = "sgv"
 
+    # Telegram Bot (HortiReg / @HortRegBot)
+    telegram_bot_token: str = ""
+    telegram_bot_name: str = "HortiReg"
+    telegram_bot_username: str = "HortRegBot"
+    telegram_webhook_secret: str = ""
+    telegram_webhook_url: str = ""
+    telegram_polling: bool = False
+    telegram_api_url: str = "https://api.telegram.org"
+
     # Gemini
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.5-flash"

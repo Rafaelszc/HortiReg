@@ -18,3 +18,15 @@ async def exigir_token(
     recebido = x_webhook_token or token or ""
     if not hmac.compare_digest(recebido.encode(), esperado.encode()):
         raise HTTPException(status_code=401, detail="Token do webhook inválido")
+
+
+async def exigir_secret_telegram(
+    x_telegram_bot_api_secret_token: str | None = Header(default=None),
+) -> None:
+    """Sem TELEGRAM_WEBHOOK_SECRET o webhook fica aberto (dev); com ele, valida o cabeçalho do Telegram."""
+    esperado = settings.telegram_webhook_secret
+    if not esperado:
+        return
+    recebido = x_telegram_bot_api_secret_token or ""
+    if not hmac.compare_digest(recebido.encode(), esperado.encode()):
+        raise HTTPException(status_code=401, detail="Secret do webhook do Telegram inválido")

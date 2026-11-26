@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.database import get_session
 from app.models import ItemPedido, Pedido, StatusPedido
 from app.routers.auth import get_current_admin
+from app.services import pedidos_dia
 
 # Pedidos e dados de clientes só para o administrador autenticado (US-02).
 router = APIRouter(prefix="/pedidos", tags=["pedidos"], dependencies=[Depends(get_current_admin)])
@@ -21,6 +23,19 @@ async def listar(session: AsyncSession = Depends(get_session)):
         }
         for p in result
     ]
+
+
+@router.get("/dia")
+async def pedidos_do_dia(session: AsyncSession = Depends(get_session)):
+    """Pedidos CONFIRMADOS feitos hoje, no fuso da feira (US-12)."""
+    inicio, fim = pedidos_dia.intervalo_de_hoje()
+    result = await session.scalars(
+        select(Pedido)
+        .options(selectinload(Pedido.cliente))
+        .where(Pedido.status == StatusPedido.CONFIRMADO, Pedido.criado_em >= inicio, Pedido.criado_em < fim)
+        .order_by(Pedido.criado_em)
+    )
+    return [pedidos_dia.resumo(p) for p in result]
 
 
 @router.get("/separacao")

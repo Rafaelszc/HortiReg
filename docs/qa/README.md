@@ -13,9 +13,9 @@
 | Análise de Riscos Baseada em Defeitos | `GP_RiscoBaseadoDefeitos.xlsx` | HORTI-QA-03 | Julio Araújo | [Mapeado / A Preencher] |
 | Relatório de Bugs da Sprint 1 | `Bugs_Sprint1_HortiReg.txt` | HORTI-QA-04 | Julio Araújo | Disponível |
 | Casos de Teste da Sprint 1 | `Casos_de_Teste_Sprint1_HortiReg.txt` | HORTI-QA-05 | Julio Araújo | Histórico (12/11) |
-| Casos de teste e rastreabilidade (vigente) | `casos-de-teste.md` | — | Rafael | Atualizado em 25/11 |
-| Registro de bugs da R2 (BUG-01 a BUG-06) | `Bugs_Sprint1_HortiReg.txt` | SCRUM-71 a SCRUM-76 | Rafael | Atualizado em 25/11 |
-| Relatório de qualidade da R2 | `docs/releases/release-2/relatorio-qualidade.md` | — | Rafael | Fechado em 25/11 (regressão final) |
+| Casos de teste e rastreabilidade (vigente) | `casos-de-teste.md` | — | Rafael | Atualizado em 26/11 (US-11, US-12, Telegram) |
+| Registro de bugs da R2 (BUG-01 a BUG-09) | `Bugs_Sprint1_HortiReg.txt` | SCRUM-71 a 76, 83 a 85 | Rafael | Atualizado em 26/11 |
+| Relatório de qualidade da R2 | `docs/releases/release-2/relatorio-qualidade.md` | — | Rafael | Fechado em 26/11 (regressão final em `d638ac0`, métricas e riscos) |
 | DoD (Sprint e Release) | `docs/planos/Definition_of_Done_HortiReg_v1.1.xlsx` | — | QA verifica, PO aceita | Sprints 1 a 3 e Release 2 (itens do QA) |
 
 ---

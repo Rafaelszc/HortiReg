@@ -27,7 +27,7 @@ async def montar_itens(session: AsyncSession, extraidos: list[ItemExtraido]) -> 
         itens.append(
             ItemPedido(
                 nome=e.nome,
-                quantidade=e.quantidade,
+                quantidade=Decimal(str(e.quantidade)),
                 unidade=e.unidade,
                 produto_id=produto.id if casou else None,
                 preco_unitario=produto.preco if casou else None,

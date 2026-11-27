@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Marca } from "./Marca";
+import PedidosAtivos from "./PedidosAtivos";
 import PedidosDoDia from "./PedidosDoDia";
 import Produtos from "./Produtos";
 
@@ -34,6 +35,7 @@ export default function Painel({ token, login, onSair, onExpirada }: Props) {
         </div>
       </header>
       <main className="conteudo">
+        <PedidosAtivos token={token} onExpirada={onExpirada} />
         <nav className="segmentado" aria-label="Seções do painel">
           <button type="button" aria-pressed={aba === "produtos"} onClick={() => setAba("produtos")}>
             Produtos

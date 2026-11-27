@@ -1,6 +1,17 @@
+from enum import Enum
 import math
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+class AcaoPedido(str, Enum):
+    """Intenção identificada pela LLM na mensagem do cliente."""
+
+    ADICIONAR = "adicionar"
+    SUBSTITUIR = "substituir"
+    REMOVER = "remover"
+    CONFIRMAR = "confirmar"
+    CANCELAR = "cancelar"
 
 
 class ItemExtraido(BaseModel):
@@ -27,7 +38,20 @@ class PedidoExtraido(BaseModel):
 
     model_config = ConfigDict(hide_input_in_errors=True)
 
+    acao: AcaoPedido = Field(
+        default=AcaoPedido.ADICIONAR,
+        description=(
+            "Comando identificado: 'adicionar' (novo pedido ou acrescentar itens), "
+            "'substituir' (cancelar o pedido anterior e fazer outro no lugar), "
+            "'remover' (tirar itens do pedido atual), 'confirmar' (confirmar pedido) "
+            "ou 'cancelar' (cancelar pedido sem novos itens)."
+        ),
+    )
     itens: list[ItemExtraido] = Field(default_factory=list)
+    itens_remover: list[str] = Field(
+        default_factory=list,
+        description="Nomes (singular, minúsculo) dos produtos que o cliente pediu para remover. Ex: ['banana']",
+    )
     observacao: str | None = Field(
         default=None, description="Observações do cliente (horário, ponto de referência etc.)"
     )
@@ -38,3 +62,8 @@ class PedidoExtraido(BaseModel):
     def _so_quantidade_positiva(cls, itens: list[ItemExtraido]) -> list[ItemExtraido]:
         """Descarta item com quantidade zero, negativa ou não finita vinda da IA (valor negativo no pedido)."""
         return [i for i in itens if math.isfinite(i.quantidade) and i.quantidade > 0]
+
+    @field_validator("itens_remover")
+    @classmethod
+    def _normalizar_remocoes(cls, nomes: list[str]) -> list[str]:
+        return [n.strip().lower() for n in nomes if n and n.strip()]

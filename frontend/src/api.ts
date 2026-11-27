@@ -49,6 +49,28 @@ export function expiracao(token: string): number | null {
 
 export type Produto = { id: number; nome: string; unidade: string; preco: number; ativo: boolean };
 
+export type StatusPedido = "AGUARDANDO_CONFIRMACAO" | "CONFIRMADO" | "CANCELADO" | "ENTREGUE" | "EXPIRADO";
+
+export type ItemPedido = {
+  nome: string;
+  quantidade: number;
+  unidade: string;
+  preco_unitario: number | null;
+};
+
+export type Pedido = {
+  id: number;
+  status: StatusPedido;
+  cliente: string;
+  observacao: string | null;
+  criado_em: string | null;
+  itens: ItemPedido[];
+};
+
+export function listarPedidos(token: string) {
+  return pedir<Pedido[]>("/pedidos", {}, token);
+}
+
 export function listarProdutos(token: string) {
   return pedir<Produto[]>("/produtos", {}, token);
 }
@@ -56,8 +78,6 @@ export function listarProdutos(token: string) {
 export function criarProduto(token: string, dados: { nome: string; unidade: string; preco: number }) {
   return pedir<Produto>("/produtos", { method: "POST", body: JSON.stringify(dados) }, token);
 }
-
-export type StatusPedido = "AGUARDANDO_CONFIRMACAO" | "CONFIRMADO" | "CANCELADO" | "ENTREGUE" | "EXPIRADO";
 
 export type PedidoDoDia = {
   id: number;

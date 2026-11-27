@@ -98,7 +98,7 @@ jobs:
         run: ruff check .
       - name: Testes com cobertura
         run: pytest --cov=app --cov-fail-under=80 --cov-report=xml --cov-report=term-missing --junitxml=report-pytest.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: relatorios-api
@@ -171,7 +171,7 @@ jobs:
           browser: chrome
         env:
           TAGS: ${{ github.event_name == 'push' && '@smoke and not @wip' || '(@smoke or @regressao) and not @wip' }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: cypress-evidencias

@@ -172,6 +172,42 @@ def test_pedido_pendente_adiciona_itens_por_texto_e_audio(client, catalogo, tele
     assert itens_map == {"tomate": 3.0, "banana": 1.0, "coentro": 2.0}
 
 
+def test_comandos_gemini_substituir_mantendo_id_remover_e_confirmar(client, catalogo, telegram_fake, llm_fake):
+    from app.schemas.pedido import AcaoPedido, ItemExtraido, PedidoExtraido
+
+    llm_fake["responder"](("tomate", 2, "kg"), ("banana", 1, "caixa"))
+    client.post("/webhook/telegram", json=_update_texto("2 kg de tomate e 1 caixa de banana"))
+    pedido_id = _ultimo_pedido().id
+
+    # Comando SUBSTITUIR (ex.: áudio dizendo "cancela esse e faz outro com 3 kg de batata") mantém o mesmo pedido_id
+    llm_fake["resposta"] = PedidoExtraido(
+        acao=AcaoPedido.SUBSTITUIR,
+        itens=[ItemExtraido(nome="batata", quantidade=3, unidade="kg")],
+    )
+    client.post("/webhook/telegram", json=_update_voz(duracao=12, mime_type="audio/ogg"))
+    assert _total_pedidos() == 1
+    pedido = _ultimo_pedido()
+    assert pedido.id == pedido_id
+    assert [(i.nome, float(i.quantidade)) for i in pedido.itens] == [("batata", 3.0)]
+    assert "Substituí os itens" in telegram_fake["enviadas"][-1][1]
+
+    # Comando misto: remove batata e adiciona 2 kg de tomate
+    llm_fake["resposta"] = PedidoExtraido(
+        acao=AcaoPedido.ADICIONAR,
+        itens=[ItemExtraido(nome="tomate", quantidade=2, unidade="kg")],
+        itens_remover=["batata"],
+    )
+    client.post("/webhook/telegram", json=_update_texto("tira a batata e bota 2 kg de tomate"))
+    assert _ultimo_pedido().id == pedido_id
+    assert [(i.nome, float(i.quantidade)) for i in _ultimo_pedido().itens] == [("tomate", 2.0)]
+
+    # Comando CONFIRMAR via áudio
+    llm_fake["resposta"] = PedidoExtraido(acao=AcaoPedido.CONFIRMAR)
+    client.post("/webhook/telegram", json=_update_voz(duracao=5, mime_type="audio/ogg"))
+    assert _ultimo_pedido().id == pedido_id
+    assert _ultimo_pedido().status == StatusPedido.CONFIRMADO
+
+
 def test_pedido_sem_pendente_e_falha_ia(client, telegram_fake, llm_fake):
     client.post("/webhook/telegram", json=_update_texto("1"))
     assert "nenhum pedido" in telegram_fake["enviadas"][-1][1].lower()

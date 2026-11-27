@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import SessionLocal
 from app.models import Cliente, ItemPedido, MensagemProcessada, Pedido, StatusPedido
-from app.schemas.pedido import PedidoExtraido
+from app.schemas.pedido import AcaoPedido, PedidoExtraido
 from app.services import audio, catalogo, estados, expiracao, llm, telegram
 from app.services.estados import EstadoConversa
 
@@ -254,14 +254,14 @@ async def _processar_mensagem(message: dict, update_id: int | None) -> None:
                 return
 
         # Etapa 2 (AGUARDANDO_CONFIRMACAO ou pedido pendente no banco):
-        # 1/2/3 confirmam/editam/cancelam; outro texto ou áudio adiciona itens ao pedido pendente.
+        # 1/2/3 confirmam/editam/cancelam; outro texto ou áudio é interpretado como comando/edição pela IA.
         opcao = OPCOES.get(texto.lower()) if texto else None
         pendente = await _pedido_pendente(session, cliente)
         if pendente is not None:
             if opcao is not None:
                 await _tratar_resposta(session, cliente, chat_id, pendente, opcao)
             else:
-                await _adicionar_ao_pedido(session, chat_id, update_id, pendente, texto, midia)
+                await _processar_comando_pendente(session, cliente, chat_id, update_id, pendente, texto, midia)
             return
         if opcao is not None:
             await _tratar_resposta(session, cliente, chat_id, None, opcao)
@@ -322,15 +322,31 @@ def _mesclar_itens(atuais: list[ItemPedido], novos: list[ItemPedido]) -> None:
             por_chave[chave] = novo
 
 
-async def _adicionar_ao_pedido(
+def _remover_itens(atuais: list[ItemPedido], nomes_remover: list[str]) -> tuple[list[str], list[str]]:
+    """Remove itens pelo nome (singular, minúsculo). Retorna (removidos, nao_encontrados)."""
+    removidos: list[str] = []
+    nao_encontrados: list[str] = []
+    for alvo in nomes_remover:
+        alvo_norm = alvo.strip().lower()
+        antes = len(atuais)
+        atuais[:] = [i for i in atuais if i.nome.strip().lower() != alvo_norm]
+        if len(atuais) < antes:
+            removidos.append(alvo_norm)
+        else:
+            nao_encontrados.append(alvo_norm)
+    return removidos, nao_encontrados
+
+
+async def _processar_comando_pendente(
     session: AsyncSession,
+    cliente: Cliente,
     chat_id: int,
     update_id: int | None,
     pedido: Pedido,
     texto: str,
     midia: dict | None,
 ) -> None:
-    """Extrai novos itens (texto ou áudio) e os adiciona ao pedido em AGUARDANDO_CONFIRMACAO."""
+    """Interpreta texto/áudio durante AGUARDANDO_CONFIRMACAO: adicionar, substituir, remover, confirmar ou cancelar."""
     pedido_extraido, _ = await _extrair_itens(chat_id, update_id, texto, midia)
     if pedido_extraido is None:
         estados.definir(
@@ -341,7 +357,38 @@ async def _adicionar_ao_pedido(
         )
         return
 
-    if not pedido_extraido.itens:
+    acao = pedido_extraido.acao
+
+    if acao == AcaoPedido.CONFIRMAR:
+        await _tratar_resposta(session, cliente, chat_id, pedido, "confirmar")
+        return
+
+    if acao == AcaoPedido.CANCELAR:
+        await _tratar_resposta(session, cliente, chat_id, pedido, "cancelar")
+        return
+
+    if acao == AcaoPedido.SUBSTITUIR:
+        if not pedido_extraido.itens:
+            await _tratar_resposta(session, cliente, chat_id, pedido, "cancelar")
+            return
+        pedido.observacao = pedido_extraido.observacao
+        pedido.itens = await catalogo.montar_itens(session, pedido_extraido.itens)
+        await session.commit()
+        estados.definir(
+            chat_id,
+            EstadoConversa.AGUARDANDO_CONFIRMACAO,
+            pedido_id=pedido.id,
+            on_timeout=_ao_expirar_sessao,
+        )
+        await telegram.enviar_texto(
+            chat_id,
+            f"🔄 Substituí os itens do seu pedido #{pedido.id}:\n{_resumo(pedido.itens)}\n\n{MSG_OPCOES}",
+            reply_markup=TECLADO_OPCOES,
+        )
+        return
+
+    # ADICIONAR ou REMOVER (suporta inclusive remoção + adição na mesma frase)
+    if not pedido_extraido.itens and not pedido_extraido.itens_remover:
         estados.definir(
             chat_id,
             EstadoConversa.AGUARDANDO_CONFIRMACAO,
@@ -355,24 +402,49 @@ async def _adicionar_ao_pedido(
         )
         return
 
-    novos_itens = await catalogo.montar_itens(session, pedido_extraido.itens)
-    _mesclar_itens(pedido.itens, novos_itens)
+    avisos: list[str] = []
+    if pedido_extraido.itens_remover:
+        _, nao_encontrados = _remover_itens(pedido.itens, pedido_extraido.itens_remover)
+        for nome in nao_encontrados:
+            avisos.append(f"⚠️ '{nome}' não está no seu pedido #{pedido.id}.")
+
+    if pedido_extraido.itens:
+        novos_itens = await catalogo.montar_itens(session, pedido_extraido.itens)
+        _mesclar_itens(pedido.itens, novos_itens)
+
     if pedido_extraido.observacao:
         if pedido.observacao:
             pedido.observacao = f"{pedido.observacao}; {pedido_extraido.observacao}"[:500]
         else:
             pedido.observacao = pedido_extraido.observacao
-    await session.commit()
 
+    if not pedido.itens:
+        pedido.status = StatusPedido.CANCELADO
+        await session.commit()
+        estados.resetar(chat_id)
+        await telegram.enviar_texto(
+            chat_id,
+            f"❌ Todos os itens foram removidos e o pedido #{pedido.id} foi cancelado.",
+            reply_markup=TECLADO_MENU,
+        )
+        return
+
+    await session.commit()
     estados.definir(
         chat_id,
         EstadoConversa.AGUARDANDO_CONFIRMACAO,
         pedido_id=pedido.id,
         on_timeout=_ao_expirar_sessao,
     )
+    prefixo = "\n".join(avisos) + "\n" if avisos else ""
+    cabecalho = (
+        f"Adicionei ao seu pedido #{pedido.id}:"
+        if pedido_extraido.itens and not pedido_extraido.itens_remover
+        else f"Atualizei seu pedido #{pedido.id}:"
+    )
     await telegram.enviar_texto(
         chat_id,
-        f"Adicionei ao seu pedido #{pedido.id}:\n{_resumo(pedido.itens)}\n\n{MSG_OPCOES}",
+        f"{prefixo}{cabecalho}\n{_resumo(pedido.itens)}\n\n{MSG_OPCOES}",
         reply_markup=TECLADO_OPCOES,
     )
 

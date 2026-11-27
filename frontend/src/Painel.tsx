@@ -1,4 +1,5 @@
 import { Marca } from "./Marca";
+import PedidosAtivos from "./PedidosAtivos";
 import Produtos from "./Produtos";
 
 type Props = {
@@ -28,6 +29,7 @@ export default function Painel({ token, login, onSair, onExpirada }: Props) {
         </div>
       </header>
       <main className="conteudo">
+        <PedidosAtivos token={token} onExpirada={onExpirada} />
         <Produtos token={token} onExpirada={onExpirada} />
       </main>
     </div>

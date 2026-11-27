@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.database import get_session
 from app.models import ItemPedido, Pedido, StatusPedido
@@ -12,12 +13,25 @@ router = APIRouter(prefix="/pedidos", tags=["pedidos"], dependencies=[Depends(ge
 
 @router.get("")
 async def listar(session: AsyncSession = Depends(get_session)):
-    result = await session.scalars(select(Pedido).order_by(Pedido.id.desc()).limit(50))
+    result = await session.scalars(
+        select(Pedido).options(selectinload(Pedido.cliente)).order_by(Pedido.id.desc()).limit(50)
+    )
     return [
         {
             "id": p.id,
             "status": p.status,
-            "itens": [{"nome": i.nome, "quantidade": float(i.quantidade), "unidade": i.unidade} for i in p.itens],
+            "cliente": (p.cliente.nome or p.cliente.telefone) if p.cliente else "Cliente",
+            "observacao": p.observacao,
+            "criado_em": p.criado_em.isoformat() if p.criado_em else None,
+            "itens": [
+                {
+                    "nome": i.nome,
+                    "quantidade": float(i.quantidade),
+                    "unidade": i.unidade,
+                    "preco_unitario": float(i.preco_unitario) if i.preco_unitario is not None else None,
+                }
+                for i in p.itens
+            ],
         }
         for p in result
     ]

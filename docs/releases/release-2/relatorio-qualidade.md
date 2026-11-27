@@ -1,6 +1,6 @@
 # Relatório de qualidade · Release 2
 
-QA: Rafael. **Situação: fechado para a Review da Sprint 3 (atualizado em 25/11/2026: `develop` `cc394bf`, PRs #13 a #26 mesclados; regressão final na seção 1). US-12 (PR #29) e SCRUM-51 (PR #30) entregues com CI verde, aguardando revisão.**
+QA: Rafael. **Situação: fechado na Review da Sprint 3 (atualizado em 26/11/2026: `develop` `d638ac0`, PRs #13 a #32 mesclados, incluindo US-11, US-12, SCRUM-51 e o bot do Telegram; regressão final na seção 1). Release com 1 bug Alto aberto (BUG-07, Telegram): ver seção 6, Riscos.**
 
 Este relatório traz também os resultados da R1, que não tinham sido medidos (feedback da R1). Base: Plano de Qualidade v1.1 e Plano de Teste v1.1. Casos e evidências: [`docs/qa/casos-de-teste.md`](../../qa/casos-de-teste.md).
 
@@ -18,16 +18,23 @@ Este relatório traz também os resultados da R1, que não tinham sido medidos (
 | 25/11 | PR #29 (US-12, pedidos do dia) | CI de PR ([run 45689476387](https://github.com/Rafaelszc/HortiReg/actions/runs/45689476387)) | Suíte completa e Cypress `@regressao` verdes; local: 89 passed, cobertura 93,47%, Cypress 6/6 |
 | 25/11 | PR #30 (SCRUM-51, deploy e rollback) | CI de PR ([run 45691331013](https://github.com/Rafaelszc/HortiReg/actions/runs/45691331013)) e ensaio ([run 45691331085](https://github.com/Rafaelszc/HortiReg/actions/runs/45691331085)) | Suíte verde (cobertura 93,28%); ensaio aprovado: 1,5 s fora do ar, rollback 32,4 s |
 | **25/11** | **Regressão final da R2: `develop` `cc394bf` (com o #26) + docs, PR #27** | **CI de PR completo ([run 45684180353](https://github.com/Rafaelszc/HortiReg/actions/runs/45684180353)): `pytest --cov=app --cov-fail-under=80`, Cypress `(@smoke or @regressao) and not @wip`** | **84/84 passaram, cobertura 93,27%; Cypress 4/4; ruff, gitleaks, bandit, pip-audit e npm audit sem achados. Cobertura por arquivo: [`cobertura-regressao-final.txt`](cobertura-regressao-final.txt)** |
+| 26/11 | PR #32 (bot do Telegram), antes do merge | CI de PR ([run 45923644250](https://github.com/Rafaelszc/HortiReg/actions/runs/45923644250)) e ensaio de deploy ([run 45923644205](https://github.com/Rafaelszc/HortiReg/actions/runs/45923644205)) | Suíte completa verde; Cypress `@smoke or @regressao` 6/6; ensaio de rollback aprovado |
+| **26/11** | **Regressão final da R2 (refeita): `develop` `d638ac0`, com #29, #30, #31 e #32** | **CI de push ([run 45924966506](https://github.com/Rafaelszc/HortiReg/actions/runs/45924966506)) + local: `pytest --cov=app --cov-fail-under=80`, `-m regressao`, `-m smoke`, `ruff check`** | **137/137 passaram, cobertura 85,80%; `-m regressao` 99/99; `-m smoke` 18/18; ruff limpo; gitleaks, bandit, pip-audit e npm audit sem achados. Cobertura por arquivo: [`cobertura-regressao-final.txt`](cobertura-regressao-final.txt)** |
+
+A cobertura caiu de 93,27% para 85,80% com o bot do Telegram: `services/telegram.py` 26%, `services/telegram_bot.py` 79%. Segue acima da meta (≥ 80%).
+
+Local, com `backend/.env` contendo `WEBHOOK_TOKEN`, a suíte dá 63 falhas (401). É problema de isolamento dos testes, não da `develop`: BUG-09 (SCRUM-85). Com `WEBHOOK_TOKEN` vazio, 137/137.
 
 Ambiente: Postgres 16 descartável (`hortireg_test`), com Gemini e WhatsApp simulados (fixtures `llm_fake` e `whatsapp_fake`).
 
 Não executado:
 - Teste com WhatsApp real: a homologação local (PR #30) não inclui Evolution nem Gemini.
-- Cypress local só nos PRs #29 e #30 (6/6); a regressão final do painel rodou no CI.
+- Cypress local só nos PRs #29 e #30 (6/6); a regressão final do painel rodou no CI (6/6 no run 45923644250).
+- Smoke manual com o bot real do Telegram (CT-65): pendente; precisa do token do bot na homologação.
 
 ## 2. Bugs encontrados × corrigidos
 
-Todos os bugs vieram do teste exploratório do QA em 11/11, com o reproduzível guardado como evidência. Severidade segue o Plano de Teste §11: bug de segurança tem no mínimo severidade Alta. Todos registrados no Jira (tipo Bug) em 12/11.
+BUG-01 a BUG-05 vieram do teste exploratório do QA em 11/11; BUG-06 da revisão do PR #26; BUG-07 a BUG-09 da regressão final de 26/11, com o reproduzível guardado como evidência. Severidade segue o Plano de Teste §11: bug de segurança tem no mínimo severidade Alta. Todos registrados no Jira (tipo Bug) em 12/11.
 
 | ID | Jira | Bug | Severidade | US / CT | Situação |
 |---|---|---|---|---|---|
@@ -37,8 +44,11 @@ Todos os bugs vieram do teste exploratório do QA em 11/11, com o reproduzível 
 | BUG-04 | SCRUM-74 | `POST /webhook/whatsapp` aceita evento forjado sem token (HTTP 200) e permite confirmar ou cancelar pedido de outro número | Alta | US-05 / CT-57 | Corrigido no PR #19 |
 | BUG-05 | SCRUM-75 | O CI da branch da US-06 falha no gitleaks (`generic-api-key` em `backend/README.md:164`) e no ruff (`F401`) | Alta | US-06 / CT-13 | Corrigido no PR #18 (commit `54815d9`) |
 | BUG-06 | SCRUM-76 | Reserva de 120 s da fila pode reprocessar a mensagem e duplicar o pedido | Baixa | DA-CONF-I3-01 / CT-54 | **Aberto** (backlog); achado na revisão do PR #26 |
+| BUG-07 | SCRUM-83 | `POST /webhook/telegram` aceita update forjado sem `TELEGRAM_WEBHOOK_SECRET` (padrão): cria pedido e o bot responde a qualquer `chat_id` | Alta | SCRUM-80/81 / CT-64 | **Aberto**; reproduzido em teste na `develop` `d638ac0` |
+| BUG-08 | SCRUM-84 | 7 arquivos `__pycache__/*.pyc` versionados na `develop` | Baixa | — | **Aberto** |
+| BUG-09 | SCRUM-85 | `pytest` local falha (63 de 137) quando `backend/.env` define `WEBHOOK_TOKEN` | Baixa | — | **Aberto** |
 
-**Total: 6 encontrados, 5 corrigidos e mesclados, 1 aberto (BUG-06, Baixa). Passos e evidências: [`docs/qa/Bugs_Sprint1_HortiReg.txt`](../../qa/Bugs_Sprint1_HortiReg.txt).**
+**Total: 9 encontrados, 5 corrigidos e mesclados, 4 abertos (BUG-07 Alta; BUG-06, BUG-08 e BUG-09 Baixa). Taxa de correção: 56% (5 de 9); dos encontrados até 25/11, 83% (5 de 6). Passos e evidências: [`docs/qa/Bugs_Sprint1_HortiReg.txt`](../../qa/Bugs_Sprint1_HortiReg.txt).**
 
 BUG-06 (SCRUM-76): processamento acima de 120 s, ou queda do processo depois de criar o pedido, faz o laço reprocessar a mensagem e pode duplicar o pedido. Severidade: Baixa (timeouts da IA: 30 s no texto, 45 s no áudio).
 
@@ -48,13 +58,13 @@ Observação: versões antigas de `docs/qa/Bugs_Sprint1_HortiReg.txt` usavam os 
 
 N/M = não medido, com o motivo na observação.
 
-| ID | Item | Meta | R1 | R2 (25/11, S3) | Observação |
+| ID | Item | Meta | R1 | R2 (26/11, fechamento) | Observação |
 |---|---|---|---|---|---|
-| Q-01 | Cobertura de testes | ≥ 70% (proposta v1.1: ≥ 80%) | 91% | 93,27% (regressão final) | Atinge a meta; relatório salvo em `cobertura-regressao-final.txt` |
-| Q-02 | Bugs críticos e altos abertos | 0 no fechamento | N/M (não existia o tipo Bug) | **0** | Atinge; único aberto é o BUG-06 (Baixa) |
-| Q-03 | US com Gherkin de sucesso e exceção | 100% | 100% (US-01 a US-05) | 100% (US-06 a US-12) | Conferido nas issues |
-| Q-04 | PRs integrados com ≥ 1 revisão | 100% | **0% (0 de 12)** | **57% com aprovação (8 de 14)** | Aprovados: #18, #19, #20, #22 a #26. Só com comentário: #13 a #17. Sem revisão: #21. Desde a proteção de `main` e `develop` (12/11), 100% dos PRs mesclados foram aprovados (#22 a #26) |
-| Q-05 | CI verde na branch principal | ≥ 90% | `main` 100% (2/2); `develop` 71% (5/7) | `develop` 100% (5/5 concluídos) | Outros 3 runs foram cancelados por concorrência (substituídos pelo merge seguinte), não falharam |
+| Q-01 | Cobertura de testes | ≥ 70% (proposta v1.1: ≥ 80%) | 91% | 85,80% (regressão final, `d638ac0`) | Atinge a meta; caiu de 93,27% com o Telegram (`services/telegram.py` 26%). Relatório em `cobertura-regressao-final.txt` |
+| Q-02 | Bugs críticos e altos abertos | 0 no fechamento | N/M (não existia o tipo Bug) | **1** (BUG-07, Alta) | **Não atinge**: BUG-07 (SCRUM-83) aberto no fechamento; ver seção 6 |
+| Q-03 | US com Gherkin de sucesso e exceção | 100% | 100% (US-01 a US-05) | 100% das US-06 a US-12; **Telegram (SCRUM-80/81) sem Gherkin** | SCRUM-80/81 são Task, sem critérios em Gherkin nem `.feature`; só testes unitários |
+| Q-04 | PRs integrados com ≥ 1 revisão | 100% | **0% (0 de 12)** | **68% com aprovação (13 de 19)** | Aprovados: #18, #19, #20, #22 a #27, #29 a #32. Só com comentário: #13 a #17. Sem revisão: #21. Desde a proteção de `main` e `develop` (12/11): **100% (11 de 11)** |
+| Q-05 | CI verde na branch principal | ≥ 90% | `main` 100% (2/2); `develop` 71% (5/7) | `develop` 100% (9/9 concluídos) | Desde 25/11: 5 verdes e 1 cancelado por concorrência (substituído pelo merge seguinte). Nenhuma falha |
 | Q-06 | Precisão da extração da IA | ≥ 90% | N/M | N/M | Falta o conjunto de 50 áudios (SCRUM-47) |
 | Q-07 | Pedidos duplicados em 1.000 mensagens | 0 | 0 (teste com 1 reenvio) | **0 (1.000 mensagens, 200 reenvios)** | PR #15 |
 | Q-08 | Mensagens preservadas com a IA fora do ar | 100%; reprocessadas em ≤ 5 min | N/M | **100%** | `fila_retentativa.feature` "Falha de 30 minutos sem perder nenhuma mensagem" (3 clientes, reprocessadas em até 5 min), na regressão final (run 45684180353). Teste com IA simulada; falha real só em homologação |
@@ -102,18 +112,21 @@ Resumo: 10 atendem, 2 parciais (Q-03 e Q-15, do SM) e 3 não atendem (Q-06, Q-09
 | Bugs abertos (crítico ou alto) | — | 0 |
 | Drivers verificados (de 9) | 1 (DA-CONF-I2-01) | 1 (DA-CONF-I2-01, agora com 1.000 mensagens); DA-CONF-I3-01 reprovado (BUG-03) |
 
-Sprint 3 (até 25/11):
+Sprint 3 (fechamento, 26/11):
 
 | Métrica | Sprint 3 |
 |---|---|
 | Casos planejados | CT-15/16 (US-07), CT-20/20b/21 (US-09), CT-24/25/25b (US-11), CT-26/27 (US-12), CT-52 (SCRUM-51), CT-54 (SCRUM-53) |
 | Automatizados e passando | CT-54 (7 cenários, PR #26); CT-56 texto (2 cenários, PR #23); CT-26/27 (3 cenários API + 2 Cypress, PR #29); CT-52 (ensaio, PR #30) |
-| Não executados | CT-15/16, CT-20 a CT-21, CT-24 a CT-25b: `.feature` `@wip`, sem implementação das US-07, US-09 e US-11 |
+| Automatizados após 25/11 | CT-24/25/25b (US-11, PR #31, 3 cenários); CT-62/63 (Telegram, PR #32, 14 testes unitários, sem Gherkin) |
+| Falharam | CT-64 (segurança do webhook do Telegram): BUG-07 |
+| Não executados | CT-15/16 e CT-20 a CT-21: `.feature` `@wip`, US-07 e US-09 não implementadas; CT-65 (smoke manual do Telegram) |
+| Aprovação | 91% (10 de 11 CTs executados: CT-24, 25, 25b, 26, 27, 52, 54, 56, 62, 63 passaram; CT-64 falhou) |
 | Drivers verificados | DA-CONF-I3-01 aprovado (PR #26); DA-USAB-I3-03 texto aprovado (PR #23); DA-DISP-I2-02 aprovado na homologação local (PR #30) |
 
 ## 4. Verificação da DoD por item entregue
 
-Critérios da DoD de US: PR revisado · critérios validados pelo QA · testes passando · CI verde · homologação (se exigida) · docs · aceite do PO. Verificado pelo QA em 12/11.
+Critérios da DoD de US: PR revisado · critérios validados pelo QA · testes passando · CI verde · homologação (se exigida) · docs · aceite do PO. Verificado pelo QA em 12/11; itens da Sprint 3 revistos em 26/11.
 
 | Item | PR revisado | Validado pelo QA | Testes | CI verde | Homologação | Docs | Aceite do PO | Veredito |
 |---|---|---|---|---|---|---|---|---|
@@ -129,9 +142,11 @@ Critérios da DoD de US: PR revisado · critérios validados pelo QA · testes p
 | RK-02 (SCRUM-57) | Parcial (PR #15: revisão só comentada) | Sim (CT-51) | Sim | Sim | N/A | Sim | Pendente | **Aguarda aceite**; risco mitigado |
 | RK-03 parcial (SCRUM-58) | Sim (PR #23, aprovado) | Sim (CT-56 texto) | Sim | Sim (run 43205652714) | N/A | Sim | Pendente | **Aguarda aceite** |
 | DA-CONF-I3-01 (SCRUM-53) | Sim (PR #26, aprovado) | Sim (CT-54, 7 cenários) | Sim | Sim (run 45684180353) | N/A | Sim (`.env.example`, registro de riscos) | Pendente | **Aguarda aceite** |
-| US-12 (SCRUM-36) | Pendente (PR #29) | Sim (CT-26, CT-27) | Sim | Sim (run 45689476387) | Pendente (homologação local disponível) | Sim | Pendente | **Aguarda revisão, merge e aceite** |
-| DA-DISP-I2-02 (SCRUM-51) | Pendente (PR #30) | Sim (CT-52) | Sim | Sim (runs 45691331013 e 45691331085) | Sim (homologação local) | Sim (`deploy/README.md`) | Pendente | **Aguarda revisão, merge e aceite** |
-| US-07, US-09, US-11 | Sem PR | Não (cenários `@wip`) | Não | — | — | — | — | **Não entregues**; voltam ao backlog |
+| US-12 (SCRUM-36) | Sim (PR #29, aprovado) | Sim (CT-26, CT-27) | Sim | Sim (run 45689476387) | Pendente (homologação local disponível) | Sim | Pendente | **Aguarda aceite** |
+| DA-DISP-I2-02 (SCRUM-51) | Sim (PR #30, aprovado) | Sim (CT-52) | Sim | Sim (runs 45691331013 e 45691331085) | Sim (homologação local) | Sim (`deploy/README.md`) | Pendente | **Aguarda aceite** |
+| US-11 (SCRUM-35) | Sim (PR #31, aprovado) | Sim (CT-24, CT-25, CT-25b LGPD) | Sim | Sim (run 45924966506) | Pendente (sem WhatsApp real) | Sim (CLAUDE.md, `services/endereco.py`) | Pendente | **Aguarda aceite** |
+| Bot do Telegram (SCRUM-80/81) | Sim (PR #32, aprovado) | **Não**: sem Gherkin; CT-64 falhou (BUG-07) | Sim (14 unitários) | Sim (runs 45923644250 e 45924966506) | Pendente (CT-65) | Sim (`docs/telegram-bot.md`) | Pendente | **DoD não atendida**: issues marcadas Done no Jira; fechar BUG-07, escrever `telegram.feature` |
+| US-07, US-09 | Sem PR | Não (cenários `@wip`) | Não | — | — | — | — | **Não entregues**; voltam ao backlog da R3 |
 
 Atenção: o checklist de DoD na descrição do PR #13 marca "Homologação com número real" e "Aceite do PO" como feitos. Não há ambiente de homologação nem aceite registrado na issue; vale o que está nesta tabela.
 
@@ -148,15 +163,15 @@ Valores para a coluna "Sprint 2" da planilha `Definition_of_Done_HortiReg` (aba 
 | 21 | Gherkin da US automatizado e passando no CI | Sim | US-06, US-08, US-10 e RK-02 no run 43144352377 |
 | 22 | Mensagens do bot revisadas (sem silêncio) | Não | BUG-03 |
 
-### DoD da Sprint 3: itens verificados pelo QA (25/11, parcial)
+### DoD da Sprint 3: itens verificados pelo QA (26/11, fechamento)
 
 | Nº | Critério | Sprint 3 | Evidência e observação |
 |---|---|---|---|
-| 2 | US concluídas atendem à DoD de US | Não | US-12 e SCRUM-51 com CI verde aguardam revisão e aceite; SCRUM-53 mesclado, aguarda aceite do PO |
-| 7 | Bugs da sprint registrados com evidência e severidade | Sim | BUG-06 (SCRUM-76) com passos, causa e severidade |
-| 8 | Nenhum bug crítico ou alto aberto sem plano | Sim | 0 alto aberto |
-| 9 | Regressão dos itens afetados executada | Sim | Regressão final de 25/11, run 45684180353 (seção 1) |
-| 21 | Gherkin da US automatizado e passando no CI | Sim | `fila_retentativa.feature` no run 45684180353 |
+| 2 | US concluídas atendem à DoD de US | Parcial | US-11, US-12, SCRUM-51 e SCRUM-53 mesclados e aprovados, aguardam aceite do PO; Telegram não atende (seção 4) |
+| 7 | Bugs da sprint registrados com evidência e severidade | Sim | BUG-06 a BUG-09 (SCRUM-76, 83, 84, 85) com passos, evidência e severidade |
+| 8 | Nenhum bug crítico ou alto aberto sem plano | Parcial | BUG-07 (Alta) aberto, com correção sugerida na SCRUM-83; falta responsável e prazo |
+| 9 | Regressão dos itens afetados executada | Sim | Regressão final refeita em 26/11 na `develop` `d638ac0`, run 45924966506 + local (seção 1) |
+| 21 | Gherkin da US automatizado e passando no CI | Parcial | `fila_retentativa.feature`, `pedido_endereco.feature` e `pedidos_do_dia.feature` no CI; Telegram sem `.feature` |
 | 22 | Mensagens do bot revisadas (sem silêncio) | Sim | Texto: PR #23; fila: aviso "em processamento" e aviso final (PR #26) |
 
 ## 5. Ações para fechar a R2
@@ -171,3 +186,23 @@ Valores para a coluna "Sprint 2" da planilha `Definition_of_Done_HortiReg` (aba 
 8. Registrar a ata da Planning da Sprint 3 e as métricas da Sprint 3 (Q-03 e Q-15). Responsável: SM.
 9. Revisar e mesclar os PRs #29 (US-12) e #30 (SCRUM-51); depois rodar `deploy/deploy.sh` na `develop` para registrar o primeiro deploy da R2. Responsável: QA e revisor.
 10. Mesclar o `.github/dependabot.yml` (Q-13 semanal) e acompanhar os PRs que ele abrir. Responsável: DevOps.
+11. Corrigir o BUG-07 (SCRUM-83) antes de expor a API do Telegram fora da máquina local, e escrever `telegram.feature` (sucesso e exceção) para fechar a DoD do bot. Responsáveis: Nidlan (autor) e QA.
+12. Voltar SCRUM-80/81 para "In Review" até a DoD fechar, ou convertê-las em Story (US-23/US-24) no backlog do PO. Responsáveis: PO e QA.
+13. Rodar o smoke manual com o bot real (CT-65) na homologação e anexar os prints. Responsável: QA.
+
+## 6. Riscos da release
+
+Riscos que seguem para a R3, com base nos bugs abertos, nas métricas não atingidas e no registro de riscos do SM (`docs/sm/registro-de-riscos.txt`).
+
+| Risco | Probabilidade | Impacto | Evidência | Mitigação / responsável |
+|---|---|---|---|---|
+| Pedido forjado pelo webhook do Telegram (BUG-07) | Alta, se a porta da API for exposta | Alto: pedidos falsos, confirmação ou cancelamento de pedido alheio, spam e custo de IA | CT-64 falhou; Q-02 não atingido | Exigir secret ou não registrar a rota em polling; teste de regressão. Nidlan |
+| Escopo fora do backlog: bot do Telegram sem US nem Gherkin | Média | Médio: DoD não verificável, retrabalho | SCRUM-80/81 são Task e estão Done sem `.feature` | PO decide se vira US-23/24; QA escreve CTs em Gherkin |
+| Precisão da IA não medida (Q-06) | Média | Alto: produto errado no pedido (RK-01, SCRUM-56) | Sem golden set de 50 áudios (SCRUM-47 em revisão) | Golden set antes da R3. Nidlan |
+| Sem teste com canal real (WhatsApp/Telegram) | Alta | Médio: falha só aparece em uso | Homologação local sem Evolution nem Gemini; CT-65 pendente | Smoke manual com o bot real; número de teste na Evolution. DevOps e QA |
+| Usabilidade não medida (Q-11) | Alta | Médio | Sessão com 5 a 10 pessoas nunca feita (IMP-11) | Agendar na Sprint 4. PO |
+| Disponibilidade não medida (Q-09) | Alta | Médio | Sem monitor contínuo | Health check periódico na homologação. DevOps |
+| Pedido duplicado por reserva da fila (BUG-06) | Baixa | Médio | SCRUM-76 sem responsável | Idempotência por id da mensagem. Julio |
+| US-07 e US-09 não entregues | Certa | Médio: ambiguidade e correção de pedido ficam para a R3 | Cenários `@wip`; issues em revisão sem PR | Replanejar na Planning da Sprint 4. SM e PO |
+| Cobertura em queda (93,27% → 85,80%) | Média | Baixo | `services/telegram.py` 26% | Testes do cliente da Bot API. Nidlan |
+| Aceite do PO não registrado | Alta | Baixo: itens sem Done formal | IMP-09 desde a R2 | Aceite nas issues na Review. PO |

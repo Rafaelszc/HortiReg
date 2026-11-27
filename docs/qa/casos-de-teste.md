@@ -1,6 +1,6 @@
 # Casos de teste e rastreabilidade
 
-QA: Rafael (Release 2). Fonte dos IDs: Plano de Teste v1.1, seção 8. Atualizado em 25/11/2026 (regressão final da R2 na `develop` `cc394bf`, run 45684180353: 84/84 passaram, cobertura 93,27%; Cypress 4/4; ruff, gitleaks, bandit, pip-audit e npm audit sem achados).
+QA: Rafael (Release 2). Fonte dos IDs: Plano de Teste v1.1, seção 8. Atualizado em 26/11/2026 (regressão final da R2 na `develop` `d638ac0`, após o PR #32: 137/137 passaram, cobertura 86%; Cypress 6/6 no [run 45923644250](https://github.com/Rafaelszc/HortiReg/actions/runs/45923644250)).
 
 Cada caso aponta para a US (issue do Jira), para o cenário automatizado que o verifica e para a última execução. O cenário passando no CI é a evidência do critério de aceite. Os arquivos de teste ficam em:
 
@@ -42,8 +42,19 @@ Cada caso aponta para a US (issue do Jira), para o cenário automatizado que o v
 | CT-22 | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Pedido expira sem confirmação" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-23 | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Confirmação depois da expiração" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-23b | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Pedido dentro do prazo não expira" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
-| CT-24, CT-25, CT-25b | US-11 / SCRUM-35 | `pedido_endereco.feature`, com testes complementares em `test_endereco.py`; o CT-25b verifica a LGPD (endereço fora dos logs) | Passou (local) | IA e WhatsApp simulados |
-| CT-26, CT-27 | US-12 / SCRUM-36 | API: `backend/tests/features/pedidos_do_dia.feature` (lista do dia, dia vazio, exige autenticação); painel: Cypress `pedidos_do_dia.feature` (API simulada) | Passou (CI) | PR #29 em revisão; [run 45689476387](https://github.com/Rafaelszc/HortiReg/actions/runs/45689476387). Endereço vem de `Cliente.endereco` (US-11 pendente) |
+| CT-24, CT-25, CT-25b | US-11 / SCRUM-35 | `pedido_endereco.feature` (3 cenários), com testes complementares em `test_endereco.py`; o CT-25b verifica a LGPD (endereço fora dos logs) | Passou (CI) | PR #31; [run 45924966506](https://github.com/Rafaelszc/HortiReg/actions/runs/45924966506) |
+| CT-26, CT-27 | US-12 / SCRUM-36 | API: `backend/tests/features/pedidos_do_dia.feature` (lista do dia, dia vazio, exige autenticação); painel: Cypress `pedidos_do_dia.feature` (2 cenários) | Passou (CI) | PR #29; [run 45924966506](https://github.com/Rafaelszc/HortiReg/actions/runs/45924966506); Cypress no [run 45923644250](https://github.com/Rafaelszc/HortiReg/actions/runs/45923644250) |
+
+### Bot do Telegram (SCRUM-80 / SCRUM-81, PR #32)
+
+Sem `.feature` (Gherkin) no PR: os casos abaixo são verificados por testes unitários em `backend/tests/test_telegram.py` (14 testes). Falta o Gherkin exigido pela DoD (Q-03, DoD nº 21).
+
+| CT | US / issue | Verificação | Status | Evidência |
+|---|---|---|---|---|
+| CT-62 | SCRUM-80/81 | Pedido por texto e por áudio no Telegram, com resumo, botões e confirmação por `1`/`2`/`3` ou callback (`test_telegram.py`) | Passou (CI), sem Gherkin | PR #32; [run 45924966506](https://github.com/Rafaelszc/HortiReg/actions/runs/45924966506) |
+| CT-63 | SCRUM-80/81 | Idempotência por `update_id`, grupo ignorado, `/start` e `/ajuda`, rotas `/telegram/*` exigem admin | Passou (CI), sem Gherkin | PR #32; [run 45924966506](https://github.com/Rafaelszc/HortiReg/actions/runs/45924966506) |
+| CT-64 | Segurança / SCRUM-80/81 | `POST /webhook/telegram` sem secret configurado recusa update forjado | **Falhou** | BUG-07 (SCRUM-83): update forjado cria pedido e o bot responde ao `chat_id` inventado (reproduzido em 26/11) |
+| CT-65 | SCRUM-80/81 | Smoke manual com o bot real (`@HortRegBot`): texto, áudio, endereço, 1/2/3, botões | Manual, pendente | Precisa do token do bot na homologação |
 
 ## Releases 3 e 4 (planejados)
 

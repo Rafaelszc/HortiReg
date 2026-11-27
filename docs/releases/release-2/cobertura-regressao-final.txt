@@ -1,35 +1,45 @@
 Regressão final da Release 2 · relatório do pytest-cov (Plano de Qualidade Q-01)
-CI: https://github.com/Rafaelszc/HortiReg/actions/runs/45684180353 (pull_request, PR #27, develop cc394bf + docs, 25/11/2026)
-Comando: pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
-Resultado: 84 passed; Cypress (@smoke or @regressao) and not @wip: 4/4
+Alvo: develop d638ac0 (após o PR #32, bot do Telegram), 26/11/2026, execução local do QA (Postgres 16 descartável, IA/WhatsApp/Telegram simulados)
+CI do mesmo commit: https://github.com/Rafaelszc/HortiReg/actions/runs/45924966506
+Comando: WEBHOOK_TOKEN= pytest --cov=app --cov-fail-under=80 --cov-report=term-missing
+Regressão anterior (25/11, cc394bf, 93,27%): https://github.com/Rafaelszc/HortiReg/actions/runs/45684180353
+
+_______________ coverage: platform linux, python 3.14.10-final-0 _______________
 
 Name                           Stmts   Miss  Cover   Missing
 ------------------------------------------------------------
 app/__init__.py                    0      0   100%
-app/config.py                     31      1    97%   55
+app/config.py                     41      1    98%   72
 app/database.py                   11      0   100%
-app/main.py                       28      0   100%
-app/models/__init__.py            67      0   100%
+app/main.py                       35      1    97%   32
+app/models/__init__.py            74      0   100%
 app/routers/__init__.py            0      0   100%
-app/routers/auth.py               50      0   100%
-app/routers/pedidos.py            16      2    88%   15-16
+app/routers/auth.py               46      0   100%
+app/routers/pedidos.py            23      2    91%   17-20
 app/routers/produtos.py           22      1    95%   30
-app/routers/webhook.py           130      5    96%   58, 63, 105, 125-126
+app/routers/telegram.py           37      4    89%   51-52, 60-61
+app/routers/webhook.py           173      7    96%   62, 67, 119-121, 160-161
 app/schemas/__init__.py            0      0   100%
-app/schemas/pedido.py             13      0   100%
-app/schemas/produto.py            22      0   100%
+app/schemas/pedido.py             34      0   100%
+app/schemas/produto.py            17      0   100%
+app/schemas/telegram.py            4      0   100%
 app/seed.py                       24      2    92%   36-37
 app/services/__init__.py           0      0   100%
 app/services/audio.py             25      0   100%
 app/services/catalogo.py          27      0   100%
+app/services/endereco.py          71      0   100%
+app/services/estados.py           59      5    92%   63-64, 87, 94-95
 app/services/expiracao.py         25      5    80%   46-50
-app/services/fila.py              95      9    91%   75, 111-113, 143-145, 177-178
-app/services/llm.py               18     10    44%   20-22, 31-46
+app/services/fila.py              96      9    91%   75, 111-113, 147-149, 181-182
+app/services/llm.py               37     26    30%   42-44, 53-91
+app/services/pedidos_dia.py       12      0   100%
 app/services/produtos.py          27      1    96%   34
 app/services/security.py          26      0   100%
-app/services/webhook_auth.py      10      0   100%
+app/services/telegram.py          66     49    26%   11, 25-33, 38-44, 49-56, 61-67, 72-75, 82-83, 88-91, 96-102
+app/services/telegram_bot.py     385     80    79%   109, 111-112, 119-120, 136-138, 143-155, 166, 175, 179-180, 200, 208, 234-236, 249-255, 289-290, 337, 353-359, 368-369, 373-374, 410, 417-420, 423-431, 467-473, 477, 480-482, 506-517, 528-529, 541, 548-554, 585, 622-628, 633, 658, 713-714, 724-735
+app/services/webhook_auth.py      17      0   100%
 app/services/whatsapp.py          16     10    38%   9, 14-17, 22-28
 ------------------------------------------------------------
-TOTAL                            683     46    93%
-
-Required test coverage of 80% reached. Total coverage: 93.27%
+TOTAL                           1430    203    86%
+Required test coverage of 80% reached. Total coverage: 85.80%
+Resultado: 137 passed, 0 failed

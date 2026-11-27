@@ -86,7 +86,7 @@ EVIDÊNCIA: log do job "Segredos (gitleaks)" na branch.
 CORREÇÃO: PR #18 (commit 54815d9), antes do merge. STATUS: Corrigido e retestado.
 
 ---
-3. BUG ABERTO (SPRINT 3)
+3. BUGS ABERTOS (SPRINT 3)
 ---
 [BUG-06] SCRUM-76 (backlog, prioridade Low)
 - Reserva de 120 s da fila (PR #26, fila_reserva_segundos): se um processamento passar de 120 s
@@ -94,9 +94,24 @@ CORREÇÃO: PR #18 (commit 54815d9), antes do merge. STATUS: Corrigido e retesta
   Severidade: Baixa (timeouts da IA são 30 s no texto e 45 s no áudio). Passos, causa e
   correção sugerida na SCRUM-76. STATUS: Aberto.
 
+[BUG-07] SCRUM-83 (prioridade High) - encontrado na regressão final de 26/11
+- POST /webhook/telegram aceita update forjado quando TELEGRAM_WEBHOOK_SECRET está vazio
+  (padrão do .env.example e do modo long polling). Um update inventado com chat.id qualquer
+  cria pedido para esse chat e o bot envia o resumo a ele. Severidade: Alta (segurança,
+  Plano de Teste §11). EVIDÊNCIA: teste local na develop d638ac0 (HTTP 200, 1 pedido,
+  mensagem enviada ao chat 999000111). STATUS: Aberto.
+
+[BUG-08] SCRUM-84 (prioridade Low) - 26/11
+- 7 arquivos __pycache__/*.pyc (cpython-315) versionados na develop. Severidade: Baixa.
+  STATUS: Aberto.
+
+[BUG-09] SCRUM-85 (prioridade Low) - 26/11
+- pytest local falha (63 de 137) quando backend/.env define WEBHOOK_TOKEN: conftest.py não isola
+  settings do .env. Com WEBHOOK_TOKEN vazio: 137/137. Severidade: Baixa. STATUS: Aberto.
+
 ---
-4. RESUMO (25/11/2026)
+4. RESUMO (26/11/2026)
 ---
-- Encontrados: 6 | Corrigidos: 5 | Abertos: 1 (BUG-06, Baixa)
-- Críticos/altos abertos: 0 (Q-02 atendido)
+- Encontrados: 9 | Corrigidos: 5 | Abertos: 4 (BUG-07 Alta; BUG-06, BUG-08, BUG-09 Baixa)
+- Críticos/altos abertos: 1 (BUG-07): Q-02 NÃO atendido no fechamento
 ===

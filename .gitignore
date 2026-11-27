@@ -9,3 +9,8 @@ frontend/dist/
 frontend/cypress/videos/
 frontend/cypress/screenshots/
 preview.log
+
+# homologação local (SCRUM-51)
+deploy/homologacao.env
+deploy/.versao-atual
+deploy/registro-deploys.csv

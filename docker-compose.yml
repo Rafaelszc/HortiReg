@@ -66,7 +66,7 @@ services:
 
       # Webhook global: toda mensagem recebida é enviada para a nossa API
       WEBHOOK_GLOBAL_ENABLED: "true"
-      WEBHOOK_GLOBAL_URL: http://api:8000/webhook/whatsapp
+      WEBHOOK_GLOBAL_URL: http://api:8000/webhook/whatsapp?token=${WEBHOOK_TOKEN:-}
       WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS: "false"
       WEBHOOK_EVENTS_MESSAGES_UPSERT: "true"
 

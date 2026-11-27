@@ -14,9 +14,44 @@ class Settings(BaseSettings):
     evolution_api_key: str = ""
     evolution_instance: str = "sgv"
 
+    # Telegram Bot (HortiReg / @HortRegBot)
+    telegram_bot_token: str = ""
+    telegram_bot_name: str = "HortiReg"
+    telegram_bot_username: str = "HortRegBot"
+    telegram_webhook_secret: str = ""
+    telegram_webhook_url: str = ""
+    telegram_polling: bool = False
+    telegram_estado_timeout_segundos: int = 300
+    telegram_api_url: str = "https://api.telegram.org"
+
     # Gemini
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.5-flash-lite"
+    gemini_fallback_model: str = "gemini-3.8-flash"
+
+    # Pedido por áudio (US-06): limite de duração, tamanho do arquivo e espera pela IA
+    audio_max_segundos: int = 60
+    audio_max_bytes: int = 5_000_000
+    audio_timeout_segundos: float = 45
+    # Pedido por texto (RK-03): espera máxima pela IA antes de avisar o cliente
+    ia_texto_timeout_segundos: float = 30
+
+    # Versão em execução (o deploy define APP_VERSAO com a tag da imagem)
+    app_versao: str = "dev"
+
+    # Fuso da feira em horas a partir do UTC (Campina Grande: -3). Define o "hoje" dos pedidos do dia (US-12)
+    fuso_horario_utc: int = -3
+
+    # Fila de retentativa (RK-03 / DA-CONF-I3-01): a espera dobra a cada falha até o teto; vencido o prazo, desiste
+    fila_espera_inicial_segundos: float = 15
+    fila_espera_maxima_segundos: float = 300
+    fila_prazo_minutos: int = 60  # cobre 30 min de IA fora do ar mais o reprocessamento
+    fila_intervalo_segundos: float = 10
+    # Reserva da mensagem enquanto alguém a processa (evita dois processamentos simultâneos)
+    fila_reserva_segundos: float = 120
+
+    # Token do webhook (SCRUM: segurança). Vazio = webhook aberto; defina em qualquer ambiente exposto.
+    webhook_token: str = ""
 
     # Admins (lista separada por vírgula)
     admin_numbers: str = ""
@@ -28,6 +63,9 @@ class Settings(BaseSettings):
     session_minutes: int = 30
     lockout_attempts: int = 5
     lockout_minutes: int = 15
+
+    # Pedido não confirmado expira depois deste prazo (US-10)
+    pedido_expira_minutos: int = 30
 
     @property
     def admin_list(self) -> list[str]:

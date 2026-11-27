@@ -2,6 +2,7 @@
 
 import asyncio
 import itertools
+import re
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -17,13 +18,14 @@ from app import models  # noqa: F401
 from app.config import settings
 from app.database import Base
 from app.main import app
-from app.models import Admin, Produto
-from app.schemas.pedido import ItemExtraido, PedidoExtraido
-from app.services import llm, security, whatsapp
+from app.models import Admin, Cliente, Produto
+from app.schemas.pedido import EnderecoExtraido, ItemExtraido, PedidoExtraido
+from app.services import estados, llm, security, telegram, whatsapp
 
 LOGIN = "admin"
 SENHA = "senha-de-teste-123"
 TELEFONE = "5583999990000"
+ENDERECO = "Rua das Flores, 120, Catolé, Campina Grande"
 
 # Engine própria e sem pool: cada rodar() usa um loop novo, e o app usa o dele no TestClient.
 _engine = create_async_engine(settings.database_url, poolclass=NullPool)
@@ -60,6 +62,7 @@ def banco_limpo(schema):
         await session.commit()
 
     rodar(_limpar)
+    estados.limpar_todos()
 
 
 @pytest.fixture
@@ -99,6 +102,17 @@ def catalogo():
 
 
 @pytest.fixture
+def cliente_com_endereco():
+    """Cliente do TELEFONE com endereço salvo: sem ele o pedido não pode ser confirmado (US-11)."""
+
+    async def _criar(session):
+        session.add(Cliente(telefone=TELEFONE, nome="Maria", endereco=ENDERECO))
+        await session.commit()
+
+    rodar(_criar)
+
+
+@pytest.fixture
 def whatsapp_fake(monkeypatch):
     """Guarda as mensagens enviadas em vez de chamar a Evolution API."""
     enviadas: list[tuple[str, str]] = []
@@ -111,21 +125,85 @@ def whatsapp_fake(monkeypatch):
 
 
 @pytest.fixture
+def telegram_fake(monkeypatch):
+    """Guarda mensagens e callbacks enviados em vez de chamar a Bot API do Telegram."""
+    estado: dict[str, Any] = {
+        "enviadas": [],
+        "callbacks": [],
+        "audio_dados": b"audio-telegram-falso",
+        "audio_erro": None,
+        "audio_baixados": 0,
+    }
+
+    async def enviar_texto(chat_id: int | str, texto: str, parse_mode=None, reply_markup=None) -> dict:
+        estado["enviadas"].append((chat_id, texto, reply_markup))
+        return {"ok": True}
+
+    async def responder_callback(callback_query_id: str, texto=None) -> dict:
+        estado["callbacks"].append((callback_query_id, texto))
+        return {"ok": True}
+
+    async def baixar_audio(file_id: str) -> bytes:
+        estado["audio_baixados"] += 1
+        if estado["audio_erro"]:
+            raise estado["audio_erro"]
+        return estado["audio_dados"]
+
+    monkeypatch.setattr(telegram, "enviar_texto", enviar_texto)
+    monkeypatch.setattr(telegram, "responder_callback", responder_callback)
+    monkeypatch.setattr(telegram, "baixar_audio", baixar_audio)
+    return estado
+
+
+@pytest.fixture
 def llm_fake(monkeypatch):
     """Gemini falso: devolve os itens configurados em `resposta`."""
-    estado: dict[str, Any] = {"resposta": PedidoExtraido()}
+    estado: dict[str, Any] = {"resposta": PedidoExtraido(), "chamadas": 0, "erro": None, "demora": 0}
 
     async def extrair_pedido(texto=None, audio=None, audio_mime="audio/ogg"):
+        estado["chamadas"] += 1
         estado["texto"] = texto
+        estado["audio"] = audio
+        estado["audio_mime"] = audio_mime
+        if estado["erro"]:
+            raise estado["erro"]
+        await asyncio.sleep(estado["demora"])
         return estado["resposta"]
 
     monkeypatch.setattr(llm, "extrair_pedido", extrair_pedido)
 
-    def responder(*itens: tuple[str, float, str]) -> None:
-        estado["resposta"] = PedidoExtraido(itens=[ItemExtraido(nome=n, quantidade=q, unidade=u) for n, q, u in itens])
+    def responder(*itens: tuple[str, float, str], endereco: dict | None = None) -> None:
+        estado["resposta"] = PedidoExtraido(
+            itens=[ItemExtraido(nome=n, quantidade=q, unidade=u) for n, q, u in itens],
+            endereco=EnderecoExtraido(**endereco) if endereco else None,
+        )
 
     estado["responder"] = responder
     return estado
+
+
+@pytest.fixture
+def audio_fake(monkeypatch):
+    """Evolution falsa para o download do áudio: `dados` é o conteúdo; `erro`, se definido, é lançado."""
+    estado: dict[str, Any] = {"dados": b"audio-falso", "erro": None, "baixados": 0}
+
+    async def baixar_audio(message_key: dict) -> bytes:
+        estado["baixados"] += 1
+        if estado["erro"]:
+            raise estado["erro"]
+        return estado["dados"]
+
+    monkeypatch.setattr(whatsapp, "baixar_audio", baixar_audio)
+    return estado
+
+
+def itens_do_texto(texto: str) -> list[tuple[str, float, str]]:
+    """'"2 kg de tomate" e "1 caixa de banana"' -> [("tomate", 2.0, "kg"), ("banana", 1.0, "caixa")]."""
+    itens = []
+    for trecho in re.findall(r'"([^"]+)"', texto):
+        qtd, unidade, nome = re.fullmatch(r"(\S+) (\S+) de (.+)", trecho).groups()
+        itens.append((nome, float(qtd), unidade))
+    return itens
 
 
 _ids = itertools.count(1)
@@ -141,6 +219,18 @@ def mensagem(texto: str, telefone: str = TELEFONE, msg_id: str | None = None) ->
             "message": {"conversation": texto},
         },
     }
+
+
+def mensagem_audio(
+    segundos: int | None = 30, mimetype: str = "audio/ogg; codecs=opus", telefone: str = TELEFONE
+) -> dict:
+    """Evento messages.upsert com uma nota de voz (audioMessage no lugar do texto)."""
+    evento = mensagem("", telefone)
+    audio = {"mimetype": mimetype, "ptt": True}
+    if segundos is not None:
+        audio["seconds"] = segundos
+    evento["data"]["message"] = {"audioMessage": audio}
+    return evento
 
 
 @pytest.fixture

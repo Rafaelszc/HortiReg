@@ -1,6 +1,6 @@
 # SGV-WA – Sistema de Gestão de Vendas via WhatsApp
 
-Automação de pedidos de hortifrúti: o cliente manda áudio/texto no WhatsApp, uma LLM (Gemini) extrai os itens, o cliente confirma com SIM/NÃO e o feirante recebe a lista consolidada de separação.
+Automação de pedidos de hortifrúti: o cliente manda áudio/texto no WhatsApp, uma LLM (Gemini) extrai os itens, o cliente responde 1 (confirmar), 2 (corrigir) ou 3 (cancelar) e o feirante recebe a lista consolidada de separação.
 
 ## 1. Como as peças se conectam
 
@@ -44,9 +44,10 @@ HortiReg/
     │   │   ├── webhook.py      # recebe mensagens do WhatsApp (fluxo de confirmação)
     │   │   └── pedidos.py      # lista pedidos e relatório de separação
     │   └── services/
+    │       ├── audio.py        # valida duração e formato do áudio do cliente
     │       ├── llm.py          # chamada ao Gemini (texto/áudio → itens)
     │       └── whatsapp.py     # envia mensagens / baixa áudio na Evolution API
-    └── tests/test_health.py
+    └── tests/                  # pytest + pytest-bdd (features/*.feature, test_*.py, conftest.py)
 ```
 
 Regra de ouro: **routers** só recebem/respondem requisições; a lógica "de verdade" (LLM, WhatsApp, rotas) fica em **services**.
@@ -105,14 +106,35 @@ curl -X POST http://localhost:8080/instance/create \
 
 O webhook já está configurado globalmente no `docker-compose.yml` (`WEBHOOK_GLOBAL_URL=http://api:8000/webhook/whatsapp`). Dentro do Docker os containers se enxergam pelo **nome do serviço** (`api`, `postgres`, `evolution-api`), por isso não é `localhost`.
 
+**Token do webhook:** defina `WEBHOOK_TOKEN` no `.env` (ex.: `openssl rand -hex 24`). O compose já o repassa à Evolution na URL do webhook (`?token=...`), e a API responde `401` a quem não o enviar (na URL ou no cabeçalho `X-Webhook-Token`). Vazio = sem verificação, só para desenvolvimento local. Atenção: o token na URL aparece nos logs de acesso do uvicorn; troque-o se os logs forem compartilhados. Depois de definir ou mudar o token, recrie a Evolution: `docker compose up -d evolution-api api`.
+
 ### 4.4 Testar o fluxo completo
 
 1. De **outro** número, mande para o número conectado: *"quero 2 quilos de tomate e 3 maços de coentro"* (ou um áudio).
-2. O bot responde com o resumo e pede **SIM/NÃO**.
-3. Responda **SIM**.
+2. O bot responde com o resumo. Na primeira compra, ele pede o endereço (rua e número); com o endereço completo, pede **1** (confirmar), **2** (corrigir) ou **3** (cancelar).
+3. Responda **1** (SIM também vale).
 4. Veja os dados: http://localhost:8000/pedidos e http://localhost:8000/pedidos/separacao (totais somados dos pedidos confirmados).
 
 Se algo falhar: `docker compose logs -f api evolution-api`.
+
+#### Pedido por áudio (US-06)
+
+O cliente pode mandar o pedido em nota de voz; o áudio passa pela mesma extração e pelo mesmo resumo do texto. Nenhum pedido é criado, e o cliente recebe orientação para reenviar em áudio mais curto ou em texto, quando:
+
+| Situação | Regra |
+|---|---|
+| Áudio longo demais | Mais de `AUDIO_MAX_SEGUNDOS` (padrão 60 s) ou arquivo acima de `AUDIO_MAX_BYTES` (padrão 5 MB). O áudio nem é baixado quando a duração já vem acima do limite. |
+| Formato não suportado | Aceitos: `audio/ogg` (nota de voz do WhatsApp, inclusive `codecs=opus`), `audio/mpeg` (mp3), `audio/aac` e `audio/wav`. |
+| Ininteligível | A IA não extraiu nenhum item. |
+| Falha técnica | Erro ao baixar o áudio, erro da IA ou espera maior que `AUDIO_TIMEOUT_SEGUNDOS` (padrão 45 s). O erro vai para o log, sem o conteúdo do áudio. |
+
+#### Endereço de entrega (US-11)
+
+- O pedido só é confirmado com **rua e número** (`s/n` vale). Bairro e cidade são opcionais.
+- O endereço pode vir sozinho, junto do pedido ou em partes, por texto ou áudio. O que falta fica em `rascunhos_endereco`; completo, vai para `clientes.endereco` e vale para os próximos pedidos.
+- Quando só falta o número, uma resposta como `2` é o número da casa, sem passar pela IA. Para cancelar nesse momento, o cliente escreve `cancelar`.
+- Para trocar o endereço, o cliente manda o novo. Enquanto a troca estiver incompleta, o pedido não é confirmado. Cancelar o pedido, ou fazer um novo, descarta a troca incompleta. A troca vale também para pedidos já confirmados, porque o endereço fica no cliente.
+- LGPD: o endereço não vai para os logs, os erros do banco não listam valores (`hide_parameters`) e o conteúdo de `mensagens_recebidas` é apagado quando a mensagem sai da fila (`PROCESSADA` ou `FALHOU`). Registros gravados antes da US-11 não são limpos automaticamente. O texto do cliente é enviado ao Gemini para interpretação.
 
 ## 5. Comandos do dia a dia
 
@@ -139,25 +161,36 @@ docker compose up -d postgres redis evolution-api
 Defina `DATABASE_URL=postgresql+asyncpg://sgv:SUASENHA@localhost:5433/sgv` e `EVOLUTION_URL=http://localhost:8080` no `.env`, e como o webhook global aponta para `http://api:8000`, troque para `http://host.docker.internal:8000/webhook/whatsapp` no compose. Depois:
 ```bash
 uvicorn app.main:app --reload
-pytest
 ```
+
+#### Rodar os testes (`pytest`)
+
+⚠️ **Os testes apagam e recriam todas as tabelas do banco de `DATABASE_URL`.** Nunca aponte para o banco de desenvolvimento (`sgv`). Crie um banco só para os testes e informe-o ao rodar:
+
+```bash
+docker compose exec postgres psql -U sgv -d postgres -c "CREATE DATABASE hortireg_test"
+# bash:
+DATABASE_URL=postgresql+asyncpg://sgv:SUASENHA@localhost:5433/hortireg_test \
+JWT_SECRET=$(openssl rand -hex 32) \
+ADMIN_LOGIN=admin ADMIN_PASSWORD=senha-de-teste-123 pytest
+```
+No PowerShell, defina as mesmas variáveis com `$env:NOME = "valor"` antes de `pytest`. As variáveis do ambiente têm prioridade sobre o `backend/.env`.
 
 ## 7. Avisos importantes
 
 - **Evolution API/Baileys não é oficial**: o WhatsApp pode banir o número. Use chip secundário nos testes; para produção avalie a **WhatsApp Cloud API** oficial da Meta.
 - Nunca suba o `.env` para o Git (já está no `.gitignore`).
-- Verifique na documentação da Evolution (https://doc.evolution-api.com) se os nomes de variáveis/endpoints mudaram. A imagem foi fixada em `atendai/evolution-api:v2.1.1`; o fluxo de download de áudio (`/chat/getBase64FromMediaMessage`) e o formato do webhook podem variar entre versões.
+- Verifique na documentação da Evolution (https://doc.evolution-api.com) se os nomes de variáveis/endpoints mudaram. O `docker-compose.yml` usa a imagem `evoapicloud/evolution-api` (sem versão fixada: confira a que está rodando com `docker compose images`); o fluxo de download de áudio (`/chat/getBase64FromMediaMessage`) e o formato do webhook podem variar entre versões.
 - As tabelas são criadas automaticamente na inicialização (`create_all`). Para evoluir o banco com segurança, adote **Alembic** (migrações).
 - O código ainda **não** usa `ADMIN_NUMBERS` (modo admin) nem calcula rotas: são os próximos módulos.
 
 ## 8. Próximos passos (roadmap)
 
 1. **Catálogo e admin**: endpoints CRUD de `Produto` + comandos de admin pelo WhatsApp (`ADMIN_NUMBERS`), casando `ItemPedido.nome` com `Produto` e calculando valor estimado.
-2. **Endereço do cliente**: pedir e salvar o endereço na primeira compra.
-3. **Seleção de pedidos para entrega** (status `CONFIRMADO` → carregado no veículo).
-4. **Rotas**: geocodificar endereços (Google Geocoding API) e resolver o TSP com `ortools`; gerar o link `https://www.google.com/maps/dir/...`.
-5. **Painel React** consumindo esta API (CORS + autenticação).
-6. **Alembic**, testes dos serviços e deploy (VPS com Docker Compose).
+2. **Seleção de pedidos para entrega** (status `CONFIRMADO` → carregado no veículo).
+3. **Rotas**: geocodificar endereços (Google Geocoding API) e resolver o TSP com `ortools`; gerar o link `https://www.google.com/maps/dir/...`.
+4. **Painel React** consumindo esta API (CORS + autenticação).
+5. **Alembic**, testes dos serviços e deploy (VPS com Docker Compose).
 
 ## 9. Para estudar
 

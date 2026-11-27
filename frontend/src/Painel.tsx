@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Marca } from "./Marca";
+import PedidosAtivos from "./PedidosAtivos";
+import PedidosDoDia from "./PedidosDoDia";
 import Produtos from "./Produtos";
 
 type Props = {
@@ -8,7 +11,11 @@ type Props = {
   onExpirada: () => void;
 };
 
+type Aba = "produtos" | "pedidos";
+
 export default function Painel({ token, login, onSair, onExpirada }: Props) {
+  const [aba, setAba] = useState<Aba>("produtos");
+
   return (
     <div className="painel">
       <header className="topo">
@@ -28,7 +35,20 @@ export default function Painel({ token, login, onSair, onExpirada }: Props) {
         </div>
       </header>
       <main className="conteudo">
-        <Produtos token={token} onExpirada={onExpirada} />
+        <PedidosAtivos token={token} onExpirada={onExpirada} />
+        <nav className="segmentado" aria-label="Seções do painel">
+          <button type="button" aria-pressed={aba === "produtos"} onClick={() => setAba("produtos")}>
+            Produtos
+          </button>
+          <button type="button" aria-pressed={aba === "pedidos"} onClick={() => setAba("pedidos")}>
+            Pedidos do dia
+          </button>
+        </nav>
+        {aba === "produtos" ? (
+          <Produtos token={token} onExpirada={onExpirada} />
+        ) : (
+          <PedidosDoDia token={token} onExpirada={onExpirada} />
+        )}
       </main>
     </div>
   );

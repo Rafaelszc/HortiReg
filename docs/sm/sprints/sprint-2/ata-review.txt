@@ -1,0 +1,68 @@
+================================================================================
+                    ATA DA SPRINT REVIEW - SPRINT 2
+================================================================================
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+Disciplina: Gerência de Projetos (UEPB, 2026.2)
+Data: 12/11/2026 | Horário: 20:00h às 21:00h | Local: Online
+Facilitação: Nidlan Hendell (Scrum Master da Release 2)
+Product Owner: Julio Araújo
+QA: Rafael
+Presentes: Nidlan Hendell, Julio Araújo, Rafael
+
+--------------------------------------------------------------------------------
+1. OBJETIVO DA SPRINT (SPRINT GOAL)
+--------------------------------------------------------------------------------
+Viabilizar o recebimento de pedidos por áudio no WhatsApp com transcrição e extração
+inteligente (US-06), fluxo de confirmação ativa pelo cliente (US-08) e tratamento de
+itens ambíguos ou fora do catálogo (US-07).
+
+--------------------------------------------------------------------------------
+2. ITENS DEMONSTRADOS E SITUAÇÃO DE ACEITE
+--------------------------------------------------------------------------------
+
+[ITENS CONCLUÍDOS / DEMONSTRADOS COM SUCESSO]
+1. [US-06] Pedido por áudio (8 SP - Responsável: Júlio):
+   - Transcrição e extração de itens em linguagem natural demonstradas.
+   - Suíte de 8 cenários BDD passando no CI (CT-13 e CT-14a a CT-14g).
+   - Situação: Código mesclado na develop (PR #18); pendente registrar formalmente o aceite do PO na issue (IMP-09).
+
+2. [US-08] Confirmação do pedido pelo cliente (5 SP - Responsável: Rafael):
+   - Fluxo de confirmação em 2 etapas ("1-Confirmar", "2-Corrigir", "3-Cancelar") demonstrado.
+   - Cenários CT-17 a CT-19b aprovados no CI.
+   - Situação: Código mesclado na develop (PR #19); pendente aceite formal do PO (IMP-09).
+
+3. [US-10] Expiração de pedido não confirmado (3 SP - Responsável: Rafael - Antecipada):
+   - Cancelamento automático após 30 min sem confirmação demonstrado (CT-22 a CT-23b).
+   - Situação: Código mesclado na develop (PR #20).
+
+4. [TR-02 / RK-02] Idempotência do webhook (Responsável: Rafael):
+   - Teste de 1.000 mensagens simuladas com 20% de repetições demonstrado com 0 pedidos duplicados (CT-51).
+
+--------------------------------------------------------------------------------
+3. ITENS NÃO CONCLUÍDOS / PENDÊNCIAS DA SPRINT (RESPONSÁVEL: NIDLAN HENDELL)
+--------------------------------------------------------------------------------
+Conforme a regra 3 da DoD de Sprint, itens não concluídos não recebem aceite e retornam
+ao Product Backlog para replanejamento na Sprint 3:
+
+1. [US-07] Itens ambíguos ou inexistentes (5 SP):
+   - Situação: Não foi testada. O fluxo de desambiguação ("tomate salada x tomate cereja")
+     e recusa com sugestões não foi finalizado nem validado contra os casos CT-15 e CT-16.
+   - Destino: Retorna ao Product Backlog e entra como prioridade alta na Sprint 3.
+
+2. [US-09] Corrigir ou cancelar pedido (5 SP):
+   - Situação: Não foi feita. O cliente ainda não consegue remover itens do resumo antes da confirmação.
+   - Destino: Replanejada para desenvolvimento na Sprint 3.
+
+3. [DA-USAB-I3-03] Mensagens de erro compreensíveis e recuperação pelo cliente:
+   - Situação: Não diretamente executada em sua totalidade. Os cenários de exceção de áudio
+     foram atendidos, mas as mensagens de erro nos fluxos de texto continuam falhas (ligado ao BUG-03).
+   - Destino: Será concluída junto com a US-07 e a resolução do BUG-03 (SCRUM-53) na Sprint 3.
+
+--------------------------------------------------------------------------------
+4. AVALIAÇÃO DO PO E FEEDBACK GERAL
+--------------------------------------------------------------------------------
+- O incremento técnico entregue é consistente (cobertura subiu para 93,19%), garantindo a base
+  estável de processamento de áudios e pedidos.
+- O PO (Julio) sinalizou a urgência de fechar o ciclo de aceite nas issues do Jira e regularizar
+  o escopo pendente de Nidlan (US-07 e US-09) logo no início da Sprint 3.
+================================================================================

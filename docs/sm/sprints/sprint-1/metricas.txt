@@ -1,0 +1,52 @@
+================================================================================
+                    MÉTRICAS - SPRINT 1 - HORTIREG (SGV-WA)
+================================================================================
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+Responsável: Rafael (Scrum Master da R1) | Revisão: Nidlan Hendell (SM da R2)
+Período: 20/10/2026 a 29/10/2026
+
+--------------------------------------------------------------------------------
+1. INDICADORES GERAIS DE ENTREGA (ESCOPO E VELOCITY)
+--------------------------------------------------------------------------------
+- Story Points Planejados: 21 SP (US-01 a US-05)
+- Story Points Entregues: 21 SP
+- Velocidade da Sprint 1: 21 pontos
+- Taxa de Conclusão de Histórias: 100% (5 de 5 histórias entregues)
+- Histórias Entregues:
+  * US-01 (3 SP - Rafael): Pipeline de CI e ambiente Docker
+  * US-02 (5 SP - Rafael): Acesso seguro do administrador
+  * US-03 (3 SP - Nidlan): Cadastrar produto no catálogo
+  * US-04 (2 SP - Nidlan): Alterar preço e inativar produto
+  * US-05 (8 SP - Júlio): Pedido por texto com resumo estruturado
+
+--------------------------------------------------------------------------------
+2. INDICADORES DE QUALIDADE E TESTES
+--------------------------------------------------------------------------------
+- Casos de Teste Planejados: 15 (CT-01 a CT-12, CT-51, CT-59, CT-60)
+- Casos de Teste Automatizados e Executados: 14 (100% de aprovação; CT-04 pendente)
+- Suíte de Regressão da API: 33/33 testes passando (commit develop 3973c75)
+- Cobertura de Código nos Módulos de Negócio (Q-01): 91% (meta ≥ 70%)
+- Bugs Críticos/Altos em Aberto (Q-02): 0 (o Jira não possuía o tipo Bug na R1)
+- Qualidade dos Critérios de Aceite em Gherkin (Q-03): 100% das US
+- Vulnerabilidades em Dependências (Q-13): 0 (pip-audit verde)
+- Segredos Expostos no Repositório (Q-14): 0 (gitleaks verde)
+
+--------------------------------------------------------------------------------
+3. INDICADORES DE PROCESSO E PIPELINE
+--------------------------------------------------------------------------------
+- Revisão de Código em PRs (Q-04): 0% (0 de 12 PRs revisados formalmente antes do merge)
+  * Ponto de atenção levantado na retrospectiva para rotação obrigatória na R2.
+- Estabilidade do Pipeline de CI (Q-05):
+  * Branch main: 100% (2 de 2 runs verdes)
+  * Branch develop: 71% (5 de 7 runs verdes)
+- Total de Pull Requests Integrados: 12 PRs
+
+--------------------------------------------------------------------------------
+4. INTERPRETAÇÃO DO BURNDOWN E RECOMENDAÇÕES
+--------------------------------------------------------------------------------
+- A curva de trabalho permaneceu em 21 pontos até a reta final e zerou no fechamento,
+  pois as tarefas no Jira só transitaram para Concluído no final da sprint após
+  demonstração e validação do PO.
+- A velocidade de 21 pontos serviu de balizador para planejar a Release 2 com metas
+  realistas de ~18 pontos por sprint.
+================================================================================

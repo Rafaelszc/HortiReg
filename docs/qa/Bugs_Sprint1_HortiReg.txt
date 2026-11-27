@@ -1,0 +1,102 @@
+===
+            REGISTRO DE BUGS - HORTIREG (RELEASE 2)
+===
+Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
+QA Responsável na Release 2: Rafael
+Última revisão: 25/11/2026
+Fonte oficial: docs/releases/release-2/relatorio-qualidade.md §2 (este arquivo detalha passos e evidências)
+
+Severidade (Plano de Teste §11): Crítica | Alta | Média | Baixa. Bug de segurança: no mínimo Alta.
+Origem de todos os bugs: teste exploratório do QA em 11/11/2026. Registrados no Jira (tipo Bug) em 12/11/2026.
+
+---
+1. RELEASE 1
+---
+O Jira da R1 não tinha o tipo de issue "Bug" (feedback da R1, impedimento IMP-06).
+Nenhum bug foi registrado na R1. BUG-01 e BUG-04 já existiam no código da R1 e só foram achados na Sprint 2.
+
+Versões anteriores deste arquivo citavam outros defeitos com os IDs BUG-01, BUG-02 e BUG-04
+(CORS, preço <= 0, apelidos regionais, produto inativo). Não há evidência deles no código nem no
+histórico do Git; foram retirados. Os IDs válidos são os abaixo.
+
+---
+2. BUGS DA RELEASE 2 (JIRA SCRUM-71 A SCRUM-75)
+---
+
+[BUG-01] SCRUM-71
+TÍTULO: A IA devolve quantidade negativa e o resumo sai com "Valor estimado: R$ -13,00"
+SEVERIDADE: Alta | ORIGEM: código da R1 (US-05) | CASO: CT-61
+PASSOS:
+  1. Catálogo com "tomate" ativo.
+  2. Cliente envia pedido por texto; a IA (simulada) devolve tomate com quantidade negativa (ex.: -2).
+ESPERADO: item com quantidade <= 0 descartado; nenhum valor negativo no resumo.
+OBTIDO: pedido criado e resumo com "Valor estimado: R$ -13,00".
+EVIDÊNCIA: cenário "IA devolve quantidade negativa ou zero" (backend/tests/features/pedido.feature).
+CORREÇÃO: PR #16. STATUS: Corrigido e retestado (CI run 43144352377).
+
+---
+[BUG-02] SCRUM-72
+TÍTULO: Resposta diferente de SIM/NÃO com pedido pendente cria outro pedido; o primeiro fica órfão
+SEVERIDADE: Média | ORIGEM: US-08 | CASO: CT-18
+PASSOS:
+  1. Cliente faz pedido por texto; pedido fica AGUARDANDO_CONFIRMACAO.
+  2. Cliente responde algo diferente de SIM/NÃO/1/2/3 (ex.: "talvez").
+ESPERADO: bot repete as opções 1/2/3; nenhum pedido novo.
+OBTIDO: segundo pedido criado; o primeiro fica em AGUARDANDO_CONFIRMACAO sem dono.
+EVIDÊNCIA: cenário "Resposta ambígua à confirmação" (backend/tests/features/pedido_confirmacao.feature).
+CORREÇÃO: PR #13. STATUS: Corrigido e retestado (CI run 43144352377).
+
+---
+[BUG-03] SCRUM-73
+TÍTULO: Se a IA falha num pedido por texto, o cliente não recebe resposta e nada fica registrado
+SEVERIDADE: Média | ORIGEM: US-05 / DA-CONF-I3-01 / DA-USAB-I3-03 | CASOS: CT-54, CT-56
+PASSOS:
+  1. IA (simulada) levanta erro ou passa do tempo limite.
+  2. Cliente envia pedido por texto.
+ESPERADO: cliente avisado; mensagem preservada e reprocessada quando a IA voltar.
+OBTIDO: nenhuma mensagem ao cliente; a mensagem se perde (só log).
+EVIDÊNCIA: cenários "IA fora do ar no pedido por texto" e "IA demora mais que o limite de espera"
+  (pedido.feature); backend/tests/features/fila_retentativa.feature (PR #26).
+CORREÇÃO:
+  - PR #23 (SCRUM-58, mesclado em 12/11): cliente avisado em erro ou demora. Resolve o silêncio.
+  - PR #26 (SCRUM-53, mesclado em 25/11): mensagem gravada ao chegar e reprocessada com retentativa.
+STATUS: Corrigido e retestado (regressão final, CI run 45684180353).
+
+---
+[BUG-04] SCRUM-74
+TÍTULO: POST /webhook/whatsapp aceita evento forjado sem token e permite confirmar pedido de outro número
+SEVERIDADE: Alta (segurança) | ORIGEM: US-05 | CASO: CT-57
+PASSOS:
+  1. Cliente A tem pedido AGUARDANDO_CONFIRMACAO.
+  2. Atacante envia POST /webhook/whatsapp sem token, com remoteJid do cliente A e texto de confirmação.
+ESPERADO: evento recusado; pedido inalterado.
+OBTIDO: HTTP 200; pedido do cliente A confirmado (ou cancelado).
+EVIDÊNCIA: backend/tests/features/webhook_seguranca.feature (5 cenários).
+CORREÇÃO: PR #19. STATUS: Corrigido e retestado (CI run 43144352377).
+
+---
+[BUG-05] SCRUM-75
+TÍTULO: CI da branch da US-06 falha no gitleaks e no ruff
+SEVERIDADE: Alta (segurança) | ORIGEM: branch feature/SCRUM-30-pedido-audio (US-06) | CASO: CT-13, CT-60
+PASSOS:
+  1. Push da branch feature/SCRUM-30-pedido-audio.
+ESPERADO: CI verde.
+OBTIDO: gitleaks acusa generic-api-key em backend/README.md:164; ruff acusa F401.
+EVIDÊNCIA: log do job "Segredos (gitleaks)" na branch.
+CORREÇÃO: PR #18 (commit 54815d9), antes do merge. STATUS: Corrigido e retestado.
+
+---
+3. BUG ABERTO (SPRINT 3)
+---
+[BUG-06] SCRUM-76 (backlog, prioridade Low)
+- Reserva de 120 s da fila (PR #26, fila_reserva_segundos): se um processamento passar de 120 s
+  ou o processo cair depois de criar o pedido, o laço reprocessa a mensagem e pode duplicar o pedido.
+  Severidade: Baixa (timeouts da IA são 30 s no texto e 45 s no áudio). Passos, causa e
+  correção sugerida na SCRUM-76. STATUS: Aberto.
+
+---
+4. RESUMO (25/11/2026)
+---
+- Encontrados: 6 | Corrigidos: 5 | Abertos: 1 (BUG-06, Baixa)
+- Críticos/altos abertos: 0 (Q-02 atendido)
+===

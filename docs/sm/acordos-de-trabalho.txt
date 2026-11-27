@@ -1,0 +1,111 @@
+================================================================================
+                    ACORDOS DE TRABALHO DO TIME - HORTIREG
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+Equipe: Nidlan Hendell, Rafael e Julio Araújo
+Vigência: Release 1 a Release 4 (06/10/2026 a 18/02/2027) - Revisado em cada Retrospectiva
+Responsável pelo documento: Nidlan Hendell (Scrum Master da Release 2)
+
+--------------------------------------------------------------------------------
+1. CERIMÔNIAS
+--------------------------------------------------------------------------------
+1.1. Dailies:
+     - Realizadas às segundas e quartas-feiras, pontualmente às 20h, de forma online.
+     - Duração máxima: 15 minutos (timebox estrito).
+     - Formato objetivo: cada integrante responde:
+       1) O que realizou desde a última daily?
+       2) O que planeja realizar até a próxima?
+       3) Há algum impedimento ou bloqueio no caminho?
+
+1.2. Sprint Planning, Review e Retrospectiva:
+     - Sprint Planning: executada no primeiro dia útil de cada sprint.
+     - Sprint Review e Retrospectiva: executadas no último dia de cada sprint,
+       respeitando o cronograma oficial de cerimônias.
+
+1.3. Gestão de Ausências:
+     - Caso algum integrante não possa comparecer, deve avisar previamente no canal
+       do time e registrar suas atualizações por escrito no card correspondente no Jira.
+
+--------------------------------------------------------------------------------
+2. COMUNICAÇÃO E GESTÃO DE IMPEDIMENTOS
+--------------------------------------------------------------------------------
+2.1. Dúvidas de Negócio e Requisitos:
+     - Devem ser documentadas diretamente como comentário na user story no Jira.
+     - O Product Owner (PO) possui prazo de até 24 horas para retorno formal.
+
+2.2. Tratamento de Impedimentos:
+     - Qualquer bloqueio técnico ou externo deve ser comunicado imediatamente no canal da equipe.
+     - O Scrum Master (SM) registra o impedimento, sinaliza o impacto e lidera sua resolução.
+
+2.3. Canais Oficiais:
+     - Comunicação operacional rápida via grupo do time (WhatsApp/Discord).
+     - Decisões técnicas, arquiteturais ou de escopo devem ser formalizadas no Jira ou em atas.
+
+--------------------------------------------------------------------------------
+3. FLUXO NO JIRA E GESTÃO DO BOARD
+--------------------------------------------------------------------------------
+3.1. Rastreabilidade de Status:
+     - O board do Jira deve ser mantido sempre atualizado a cada transição de estado:
+       [To Do] -> [In Progress] -> [Code Review] -> [Done].
+
+3.2. Critério Estrito de Conclusão (Done):
+     - Nenhum desenvolvedor move uma história para "Concluído" diretamente.
+     - A transição para "Concluído" é prerrogativa exclusiva do Product Owner,
+       após validação formal do checklist de Definition of Done (DoD) auditado pela QA.
+
+3.3. Ciclo de Vida de Bugs:
+     - Defeitos identificados são cadastrados utilizando o modelo oficial da disciplina,
+       sendo devidamente vinculados à User Story e ao release correspondente.
+
+--------------------------------------------------------------------------------
+4. ENGENHARIA DE SOFTWARE, REPOSITÓRIO E PADRÕES DE CÓDIGO
+--------------------------------------------------------------------------------
+4.1. Rastreabilidade de Commits e Branches:
+     - Todo commit e branch deve referenciar o identificador da issue no Jira (ex.: HORTI-15 feat: ...).
+     - Novas branches de funcionalidades são criadas a partir de `develop`.
+
+4.2. Fluxo de Pull Requests (PR) e Revisão Cruzada:
+     - Todo código entra exclusivamente via Pull Request para a branch `develop`.
+     - Rodízio obrigatório de code review (mínimo de 1 revisor aprovador):
+       Nidlan Hendell -> Rafael -> Julio Araújo -> Nidlan Hendell.
+
+4.3. Qualidade Contínua (CI):
+     - PRs devem ser revisados em até 24 horas úteis.
+     - O pipeline de CI (testes automatizados e verificações estáticas) deve estar
+       100% verde antes de qualquer merge ser autorizado.
+
+4.4. Segurança e Privacidade:
+     - Proibição absoluta de commit de credenciais, chaves de API, arquivos `.env` ou
+       quaisquer dados sensíveis de produção no repositório.
+
+--------------------------------------------------------------------------------
+5. MATRIZ DE PAPÉIS POR RELEASE
+--------------------------------------------------------------------------------
+Os papéis de liderança rotacionam a cada release para desenvolvimento de competências.
+Todos os 3 integrantes (Nidlan Hendell, Rafael e Julio Araújo) compõem o Dev Team
+em todas as releases do projeto.
+
++---------+--------------------------------+-----------------+-----------------+-----------------+
+| Release | Escopo / Tema                  | PO + DevOps     | Scrum Master    | QA              |
++---------+--------------------------------+-----------------+-----------------+-----------------+
+| R1      | Autenticação, Base e Cadastro  | Nidlan Hendell* | Rafael          | Julio Araújo    |
+| R2      | Fluxo Principal e Pedidos      | Julio Araújo    | Nidlan Hendell  | Rafael          |
+| R3      | Tempo Real e Integrações       | Rafael          | Julio Araújo    | Nidlan Hendell  |
+| R4      | Gestão, Relatórios e Demo Day  | Nidlan Hendell  | Rafael          | Julio Araújo    |
++---------+--------------------------------+-----------------+-----------------+-----------------+
+* Nota da R1: na Release 1, os papéis foram distribuídos como: Nidlan (PO), Rafael (DevOps e SM)
+  e Julio (QA). A partir da R2, os papéis de PO e DevOps permanecem unificados.
+
+--------------------------------------------------------------------------------
+6. TERMO DE ACORDO E APROVAÇÃO DO TIME
+--------------------------------------------------------------------------------
+Todos os integrantes validaram e manifestaram ciência e compromisso com estes acordos:
+
++------------------------------------+-----------------------+---------------------+
+| Integrante                         | Papel Atual (R2)      | Termo de Acordo     |
++------------------------------------+-----------------------+---------------------+
+| Nidlan Hendell                     | Scrum Master          | De acordo           |
+| Julio Araújo                       | PO + DevOps           | De acordo           |
+| Rafael                             | QA                    | De acordo           |
++------------------------------------+-----------------------+---------------------+
+================================================================================

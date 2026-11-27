@@ -1,2 +1,4 @@
 # Segredo de teste que esteve fixo no ci.yml (b7e5f9f); hoje é gerado em tempo de execução.
 b7e5f9f9255a8cb4ea786128b1e9a01f5ec7c464:.github/workflows/ci.yml:generic-api-key:21
+# Exemplo de JWT_SECRET no README (2cee0cc); trocado por openssl rand.
+2cee0cc6b9830d784eda1793f659013123c3496f:backend/README.md:generic-api-key:164

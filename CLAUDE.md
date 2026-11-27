@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Projeto
 
-HortiReg / SGV-WA: pedidos de hortifrúti via WhatsApp. Cliente manda texto ou áudio → Evolution API → webhook FastAPI → Gemini extrai itens (JSON) → bot pede SIM/NÃO → feirante vê pedidos e lista de separação no painel React.
+HortiReg / SGV-WA: pedidos de hortifrúti via WhatsApp. Cliente manda texto ou áudio → Evolution API → webhook FastAPI → Gemini extrai itens (JSON) → bot pede o endereço, se faltar, e 1/2/3 (confirmar/corrigir/cancelar) → feirante vê pedidos e lista de separação no painel React.
 
 Trabalho de Gerência de Software (UEPB), Scrum. Branches `feature/SCRUM-<n>-<slug>` saem de `develop`; PR para `develop`/`main` com 1 revisão mínima. US e critérios de aceite em Gherkin (pt), referenciados como `US-xx` / `CT-xx`.
 
@@ -54,16 +54,16 @@ ADMIN_LOGIN=... ADMIN_PASSWORD=... TAGS='@smoke' npx cypress run   # precisa API
 - `app/config.py`: `Settings` (pydantic-settings) lê `.env`; objeto global `settings`.
 - `app/database.py`: engine async (asyncpg), `SessionLocal`, `get_session` como dependência.
 - Regra: **routers** só recebem/respondem; lógica em **services** (`llm.py` Gemini, `whatsapp.py` Evolution, `catalogo.py` casa itens com `Produto` e calcula preço, `security.py` hash argon2 + JWT + bloqueio por tentativas).
-- `routers/webhook.py`: `POST /webhook/whatsapp` responde 200 na hora e processa em `BackgroundTasks`. Ignora `fromMe` e grupos. Texto em `SIM`/`NAO` confirma/cancela o pedido pendente; senão chama `llm.extrair_pedido` e cria `Pedido` com status `AGUARDANDO_CONFIRMACAO`.
+- `routers/webhook.py`: `POST /webhook/whatsapp` responde 200 na hora e processa em `BackgroundTasks`. Ignora `fromMe` e grupos. Com pedido pendente, `1`/`SIM` confirma, `2` cancela para correção, `3`/`NAO` cancela e outra mensagem (texto ou áudio) é lida como endereço ou repete as opções (US-08); sem pendente, chama `llm.extrair_pedido`, salva o endereço se vier e cria `Pedido` com status `AGUARDANDO_CONFIRMACAO`. Só confirma com endereço completo (US-11, `services/endereco.py`): parcial em `RascunhoEndereco`, completo em `Cliente.endereco`; quando só falta o número, resposta numérica é o número da casa. LGPD: não registrar endereço em log; `MensagemRecebida.payload` é apagado ao sair da fila.
 - `routers/pedidos.py`: todo o router protegido por `Depends(get_current_admin)`; `/pedidos` (filtro dia/status) e `/pedidos/separacao`.
 - `routers/auth.py`: `POST /auth/login` → `access_token` Bearer.
-- Status de pedido: `AGUARDANDO_CONFIRMACAO | CONFIRMADO | CANCELADO | ENTREGUE` (espelhado em `frontend/src/api.ts`).
+- Status de pedido: `AGUARDANDO_CONFIRMACAO | CONFIRMADO | CANCELADO | ENTREGUE | EXPIRADO` (EXPIRADO: pendente há mais de `PEDIDO_EXPIRA_MINUTOS`, laço em `services/expiracao.py`) (espelhado em `frontend/src/api.ts`).
 
 ## Testes
 
 - `tests/conftest.py`: Postgres real; schema recriado por sessão e `TRUNCATE ... RESTART IDENTITY CASCADE` antes de cada teste. Usa engine própria com `NullPool` e helper `rodar(fn)` (loop novo por chamada) para preparar dados fora do `TestClient`.
 - Gemini e WhatsApp nunca chamados de verdade: fixtures `llm_fake` (`responder(("tomate", 2, "kg"), ...)`) e `whatsapp_fake` (lista de mensagens enviadas) via monkeypatch nos módulos `app.services.*`. Chame os serviços como `llm.extrair_pedido(...)` (atributo do módulo), senão o monkeypatch não pega.
-- Outras fixtures: `client`, `admin`, `token` (header Bearer), `catalogo`, `relogio` (controla `security.agora`); helper `mensagem(texto)` monta evento Evolution.
+- Outras fixtures: `client`, `admin`, `token` (header Bearer), `catalogo`, `relogio` (controla `security.agora`); `cliente_com_endereco` (necessária para confirmar pedido); helper `mensagem(texto)` monta evento Evolution.
 - BDD: `.feature` em `tests/features/` (`# language: pt`), steps com pytest-bdd em `tests/test_*.py`. Tags `@smoke`/`@regressao` viram markers.
 - `pytest-bdd 9` quebra com `pytest >= 9.1`: manter o pin.
 - Cypress: `.feature` + steps `.ts` em `frontend/cypress/e2e/`. CI roda `@smoke and not @wip` em push e `(@smoke or @regressao) and not @wip` em PR.

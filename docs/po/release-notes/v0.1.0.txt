@@ -1,0 +1,47 @@
+================================================================================
+                    RELEASE NOTES - HORTIREG v0.1.0
+================================================================================
+Projeto: HortiReg · Gerência de Projetos (UEPB, 2026.2)
+Versão: v0.1.0 (Fechamento da Release 1)
+Data de Lançamento: 29/10/2026
+Product Owner (R1): Nidlan Hendell | DevOps (R1): Rafael | QA (R1): Julio Araújo
+
+--------------------------------------------------------------------------------
+1. DESTAQUES DA VERSÃO
+--------------------------------------------------------------------------------
+Esta versão marca a entrega da Release 1 do sistema HortiReg, disponibilizando
+a infraestrutura fundamental, segurança de acesso e a primeira versão funcional
+do catálogo de produtos e do painel administrativo.
+
+--------------------------------------------------------------------------------
+2. FUNCIONALIDADES ENTREGUES
+--------------------------------------------------------------------------------
+- Autenticação e Segurança:
+  * Endpoint de login via OAuth2 com emissão de token JWT seguro.
+  * Proteção de rotas sensíveis com middleware de autenticação.
+  * Tratamento de credenciais inválidas.
+
+- Catálogo de Produtos:
+  * Endpoints REST para criação, consulta, listagem e inativação de produtos.
+  * Validação de campos de produto (nome, preço, unidade de medida, status).
+
+- Painel Administrativo Web:
+  * Aplicação React (Vite + TypeScript) integrada com o backend FastAPI.
+  * Tela de login com redirecionamento baseado no estado de autenticação.
+  * Painel de listagem e gerenciamento de produtos hortifrúti.
+
+- Infraestrutura e Qualidade:
+  * Orquestração completa dos contêineres com Docker Compose.
+  * Pipeline automatizado de CI no GitHub Actions executando testes a cada PR.
+  * Bateria de testes de backend (pytest) e testes end-to-end (Cypress).
+
+--------------------------------------------------------------------------------
+3. CORREÇÕES DE DEFEITOS (BUGS)
+--------------------------------------------------------------------------------
+- Correção de validação de dados nulos no cadastro de produtos.
+- Ajuste nas configurações de CORS para permitir requisições locais do frontend React.
+
+--------------------------------------------------------------------------------
+[MAPEAMENTO / PENDÊNCIAS]:
+- [ ] Associar números oficiais de PRs do GitHub e chaves do Jira nesta nota de lançamento.
+================================================================================

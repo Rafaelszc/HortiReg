@@ -5,8 +5,8 @@ from sqlalchemy import func, select, update
 
 from app.config import settings
 from app.models import ItemPedido, Pedido, StatusPedido
-from app.routers.webhook import MSG_IA_FALHA, MSG_OPCOES
-from app.services import expiracao
+from app.routers.webhook import MSG_OPCOES
+from app.services import expiracao, fila
 from tests.conftest import TELEFONE, itens_do_texto, mensagem, rodar
 
 scenarios("features/pedido.feature")
@@ -16,7 +16,7 @@ OUTRO_TELEFONE = "5583988887777"
 
 
 @given("um catálogo ativo com tomate e banana", target_fixture="ctx")
-def _catalogo(catalogo, client, whatsapp_fake, llm_fake):
+def _catalogo(catalogo, cliente_com_endereco, client, whatsapp_fake, llm_fake):
     return {"client": client, "enviadas": whatsapp_fake, "llm": llm_fake}
 
 
@@ -79,9 +79,10 @@ def _nenhum(ctx):
     assert rodar(lambda s: s.scalar(select(func.count()).select_from(Pedido))) == 0
 
 
-@then("o cliente é avisado que o pedido não pôde ser lido agora")
+@then("o cliente é avisado que o pedido está em processamento")
 def _avisado(ctx):
-    assert ctx["enviadas"] == [(TELEFONE, MSG_IA_FALHA)]  # sempre uma resposta: nunca silêncio nem duplicada
+    # RK-03: a mensagem fica na fila (tests/test_fila.py); o cliente recebe uma resposta, nunca silêncio nem duplicada
+    assert ctx["enviadas"] == [(TELEFONE, fila.MSG_EM_PROCESSAMENTO)]
 
 
 @then("o cliente recebe orientação de como pedir com um exemplo")

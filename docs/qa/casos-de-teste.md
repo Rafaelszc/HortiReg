@@ -1,6 +1,6 @@
 # Casos de teste e rastreabilidade
 
-QA: Rafael (Release 2). Fonte dos IDs: Plano de Teste v1.1, seção 8. Atualizado em 12/11/2026 (regressão na `develop` `d1d8760`: 75 testes, cobertura 93,19%, Cypress verde).
+QA: Rafael (Release 2). Fonte dos IDs: Plano de Teste v1.1, seção 8. Atualizado em 25/11/2026 (regressão final da R2 na `develop` `cc394bf`, run 45684180353: 84/84 passaram, cobertura 93,27%; Cypress 4/4; ruff, gitleaks, bandit, pip-audit e npm audit sem achados).
 
 Cada caso aponta para a US (issue do Jira), para o cenário automatizado que o verifica e para a última execução. O cenário passando no CI é a evidência do critério de aceite. Os arquivos de teste ficam em:
 
@@ -42,8 +42,8 @@ Cada caso aponta para a US (issue do Jira), para o cenário automatizado que o v
 | CT-22 | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Pedido expira sem confirmação" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-23 | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Confirmação depois da expiração" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-23b | US-10 / SCRUM-34 | `pedido_expiracao.feature` "Pedido dentro do prazo não expira" | Passou (CI) | PR #14; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
-| CT-24, CT-25, CT-25b | US-11 / SCRUM-35 | `pedido_endereco.feature` (`@wip`); o CT-25b verifica a LGPD (endereço fora dos logs) | Especificado | Sprint 3 |
-| CT-26, CT-27 | US-12 / SCRUM-36 | Cypress `pedidos_do_dia.feature` (`@wip`) | Especificado | Sprint 3; existe uma implementação antiga em `backup/SCRUM-36-pedidos-do-dia` |
+| CT-24, CT-25, CT-25b | US-11 / SCRUM-35 | `pedido_endereco.feature`, com testes complementares em `test_endereco.py`; o CT-25b verifica a LGPD (endereço fora dos logs) | Passou (local) | IA e WhatsApp simulados |
+| CT-26, CT-27 | US-12 / SCRUM-36 | API: `backend/tests/features/pedidos_do_dia.feature` (lista do dia, dia vazio, exige autenticação); painel: Cypress `pedidos_do_dia.feature` (API simulada) | Passou (CI) | PR #29 em revisão; [run 45689476387](https://github.com/Rafaelszc/HortiReg/actions/runs/45689476387). Endereço vem de `Cliente.endereco` (US-11 pendente) |
 
 ## Releases 3 e 4 (planejados)
 
@@ -57,11 +57,11 @@ CT-28 a CT-47 (US-13 a US-22) estão Pendentes. Os nomes dos cenários estão no
 | CT-49 | DA-DISP-I1-02 / SCRUM-48 | k6 no pico | Pendente | R3 |
 | CT-50 | DA-USAB-I1-03 / SCRUM-49 | Teste de usabilidade | Manual, pendente | — |
 | CT-51 | DA-CONF-I2-01 / SCRUM-50, RK-02 / SCRUM-57 | `pedido.feature` "Webhook reenviado não gera pedido duplicado" e `test_duplicidade_carga.py` (1.000 mensagens, 20% reenviadas) | Passou (CI) | 0 duplicados; PR #15; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
-| CT-52 | DA-DISP-I2-02 / SCRUM-51 | Deploy com falha injetada | Pendente | Não existe ambiente de homologação |
+| CT-52 | DA-DISP-I2-02 / SCRUM-51 | `deploy/ensaio-rollback.sh`: deploy normal + deploy com falha injetada (banco inacessível) na homologação local | Passou (CI) | PR #30 em revisão. Local: 2,5 s fora do ar, rollback em 41,8 s; CI [run 45691331085](https://github.com/Rafaelszc/HortiReg/actions/runs/45691331085): 1,5 s e 32,4 s. Registro: `docs/releases/release-2/deploys-homologacao.csv` |
 | CT-53 | DA-USAB-I2-03 / SCRUM-52 | Cronometrar a troca de preço no painel | Manual, pendente | Medir junto com o Q-11 |
-| CT-54 | DA-CONF-I3-01 / SCRUM-53 | Falha simulada da IA | Falhou | BUG-03 (SCRUM-73, aberto): no pedido por texto, o cliente fica sem resposta. Sprint 3 com a SCRUM-53 |
+| CT-54 | DA-CONF-I3-01 / SCRUM-53 | `fila_retentativa.feature`: 7 cenários (gravação e aviso, reprocessamento quando a IA volta, falha de 30 min com 3 clientes, reenvio durante a falha, prazo esgotado, áudio na retentativa, ordem de chegada) | Passou (CI) | PR #26 (mesclado em 25/11); regressão final [run 45684180353](https://github.com/Rafaelszc/HortiReg/actions/runs/45684180353). Fecha o BUG-03 (SCRUM-73) |
 | CT-55 | DA-DISP-I3-02 / SCRUM-54 | Queda da sessão do WhatsApp | Pendente | R3 |
-| CT-56 | DA-USAB-I3-03 / SCRUM-55 | Mensagens de erro | Parcial | Áudio coberto (`pedido_audio.feature`, PR #18); falta o caso de texto (BUG-03 / SCRUM-73) |
+| CT-56 | DA-USAB-I3-03 / SCRUM-55 | Mensagens de erro: `pedido_audio.feature` (7 `@excecao`) e `pedido.feature` "IA fora do ar no pedido por texto" e "IA demora mais que o limite de espera no pedido por texto" | Passou (CI) | Áudio: PR #18; texto: PR #23 (SCRUM-58); [run 43205652714](https://github.com/Rafaelszc/HortiReg/actions/runs/43205652714) |
 | CT-57 | Segurança / US-05 | `webhook_seguranca.feature`: sem token, token incorreto, token na URL, token no cabeçalho, sem token configurado (dev) | Passou (CI) | BUG-04 (SCRUM-74) corrigido no PR #19; [run 43144352377](https://github.com/Rafaelszc/HortiReg/actions/runs/43144352377) |
 | CT-58 | Segurança / US-05 | Injeção de comando ou SQL tratada como texto | Parcial | Injeção no prompt coberta pelo CT-12; SQL só por ORM parametrizado, sem cenário próprio |
 | CT-59 | Segurança / US-02 | `test_auth_unidade.py::test_pedidos_exigem_admin`, `produtos.feature` "Catálogo exige autenticação" | Passou (CI) | Regressão de 11/11 |

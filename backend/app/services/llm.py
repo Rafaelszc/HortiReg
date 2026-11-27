@@ -27,7 +27,12 @@ Escolha o campo "acao" conforme a intenção do cliente:
 Se o cliente pedir para tirar um item E adicionar outro na mesma mensagem (ex: "tira a banana e bota 1 kg de cebola"),
 use acao="adicionar", coloque "banana" em "itens_remover" e a cebola em "itens".
 Se a mensagem não for um pedido nem um comando, ou o áudio estiver inaudível ou ininteligível, devolva acao="adicionar"
-e listas vazias. Nunca invente produtos."""
+e listas vazias. Nunca invente produtos.
+A mensagem pode trazer o endereço de entrega, sozinho ou junto do pedido. Nesse caso preencha "endereco"
+separando rua, numero, bairro e cidade, só com o que o cliente disse; nunca complete nem adivinhe. Preencha
+"rua" apenas com nome de rua, avenida ou travessa. "numero" é o número da casa, nunca a quantidade de um
+produto; use "s/n" se o cliente disser que não tem. Sem endereço na mensagem, "endereco" fica vazio.
+Não repita o endereço na observação."""
 
 _client: genai.Client | None = None
 

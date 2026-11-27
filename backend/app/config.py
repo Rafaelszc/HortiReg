@@ -36,6 +36,20 @@ class Settings(BaseSettings):
     # Pedido por texto (RK-03): espera máxima pela IA antes de avisar o cliente
     ia_texto_timeout_segundos: float = 30
 
+    # Versão em execução (o deploy define APP_VERSAO com a tag da imagem)
+    app_versao: str = "dev"
+
+    # Fuso da feira em horas a partir do UTC (Campina Grande: -3). Define o "hoje" dos pedidos do dia (US-12)
+    fuso_horario_utc: int = -3
+
+    # Fila de retentativa (RK-03 / DA-CONF-I3-01): a espera dobra a cada falha até o teto; vencido o prazo, desiste
+    fila_espera_inicial_segundos: float = 15
+    fila_espera_maxima_segundos: float = 300
+    fila_prazo_minutos: int = 60  # cobre 30 min de IA fora do ar mais o reprocessamento
+    fila_intervalo_segundos: float = 10
+    # Reserva da mensagem enquanto alguém a processa (evita dois processamentos simultâneos)
+    fila_reserva_segundos: float = 120
+
     # Token do webhook (SCRUM: segurança). Vazio = webhook aberto; defina em qualquer ambiente exposto.
     webhook_token: str = ""
 

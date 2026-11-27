@@ -1,0 +1,12 @@
+# Ensaios de deploy e rollback na homologação local (SCRUM-51 / CT-52 / Q-10). Fonte: deploy/registro-deploys.csv (25/11/2026) e CI run 45691331085
+origem,data,versao,anterior,falha_injetada,resultado,indisponibilidade_s,rollback_s
+local,2026-11-25T16:55:17-03:00,15c71fd-b,15c71fd-a,0,ok,2.5,-
+local,2026-11-25T16:56:33-03:00,15c71fd-falha,15c71fd-b,1,rollback,70.8,71.4
+local,2026-11-25T16:58:16-03:00,15c71fd-a,15c71fd-b,0,ok,2.6,-
+local,2026-11-25T16:58:23-03:00,15c71fd-b,15c71fd-a,0,ok,2.6,-
+local,2026-11-25T16:59:08-03:00,15c71fd-falha,15c71fd-b,1,rollback,39.8,40.7
+local,2026-11-25T17:00:48-03:00,75986f9-a,15c71fd-b,0,ok,2.5,-
+local,2026-11-25T17:00:55-03:00,75986f9-b,75986f9-a,0,ok,2.5,-
+local,2026-11-25T17:01:41-03:00,75986f9-falha,75986f9-b,1,rollback,41.3,41.8
+ci,2026-11-25,26c0bff-b,26c0bff-a,0,ok,1.5,-
+ci,2026-11-25,26c0bff-falha,26c0bff-b,1,rollback,-,32.4

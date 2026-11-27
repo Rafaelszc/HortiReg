@@ -79,6 +79,21 @@ export function criarProduto(token: string, dados: { nome: string; unidade: stri
   return pedir<Produto>("/produtos", { method: "POST", body: JSON.stringify(dados) }, token);
 }
 
+export type PedidoDoDia = {
+  id: number;
+  cliente: string;
+  telefone: string;
+  endereco: string | null;
+  itens: { nome: string; quantidade: number; unidade: string }[];
+  valor: number;
+  status: StatusPedido;
+  criado_em: string;
+};
+
+export function listarPedidosDoDia(token: string) {
+  return pedir<PedidoDoDia[]>("/pedidos/dia", {}, token);
+}
+
 export function atualizarProduto(token: string, id: number, dados: { preco?: number; ativo?: boolean }) {
   return pedir<Produto>(`/produtos/${id}`, { method: "PATCH", body: JSON.stringify(dados) }, token);
 }

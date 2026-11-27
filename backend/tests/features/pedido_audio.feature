@@ -47,18 +47,18 @@ Funcionalidade: Pedido por áudio (US-06)
     Dado que o download do áudio falha
     Quando o cliente envia um áudio de 10 segundos
     Então nenhum pedido é criado
-    E o cliente é orientado a reenviar em áudio mais curto ou em texto
+    E o cliente é avisado que o pedido está em processamento
 
   @regressao @excecao
   Cenário: IA fora do ar
     Dado que a IA está fora do ar
     Quando o cliente envia um áudio de 10 segundos
     Então nenhum pedido é criado
-    E o cliente é orientado a reenviar em áudio mais curto ou em texto
+    E o cliente é avisado que o pedido está em processamento
 
   @regressao @excecao
   Cenário: IA demora mais que o limite de espera
     Dado que a IA demora mais que o limite de espera
     Quando o cliente envia um áudio de 10 segundos
     Então nenhum pedido é criado
-    E o cliente é orientado a reenviar em áudio mais curto ou em texto
+    E o cliente é avisado que o pedido está em processamento

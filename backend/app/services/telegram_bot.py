@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -9,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import SessionLocal
-from app.models import Cliente, ItemPedido, MensagemProcessada, Pedido, StatusPedido
+from app.models import Cliente, ItemPedido, MensagemRecebida, Pedido, StatusMensagem, StatusPedido
 from app.schemas.pedido import AcaoPedido, PedidoExtraido
 from app.services import audio, catalogo, estados, expiracao, llm, telegram
 from app.services.estados import EstadoConversa
@@ -655,7 +656,18 @@ async def _repetida(session: AsyncSession, update_id: int | None) -> bool:
     """Registra o update_id do Telegram; True se ele já existia (reenvio do webhook)."""
     if update_id is None:
         return False
-    session.add(MensagemProcessada(id=f"tg:{update_id}"))
+    agora = datetime.now(UTC)
+    # Já nasce PROCESSADA: a fila de retentativa (WhatsApp) só pega PENDENTE.
+    session.add(
+        MensagemRecebida(
+            id=f"tg:{update_id}",
+            telefone="telegram",
+            payload={},
+            status=StatusMensagem.PROCESSADA,
+            proxima_tentativa_em=agora,
+            criado_em=agora,
+        )
+    )
     try:
         await session.commit()
     except IntegrityError:

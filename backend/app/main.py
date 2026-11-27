@@ -9,7 +9,7 @@ from app import models  # noqa: F401  (registra as tabelas no metadata)
 from app.config import settings
 from app.database import Base, engine
 from app.routers import auth, pedidos, produtos, telegram, webhook
-from app.services import estados, expiracao, telegram_bot
+from app.services import estados, expiracao, fila, telegram_bot
 
 logging.basicConfig(level=logging.INFO)
 # Evita spam de getUpdates nos logs e impede exposição do token do bot na URL do Telegram.
@@ -24,14 +24,15 @@ async def lifespan(app: FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         # create_all não altera enum já existente; status novo da US-10
         await conn.execute(text("ALTER TYPE statuspedido ADD VALUE IF NOT EXISTS 'EXPIRADO'"))
-    tarefa = asyncio.create_task(expiracao.rodar_periodicamente())
-    tarefa_telegram: asyncio.Task | None = None
+    tarefas = [
+        asyncio.create_task(expiracao.rodar_periodicamente()),
+        asyncio.create_task(fila.rodar_periodicamente(webhook.processar_mensagem)),
+    ]
     if settings.telegram_polling and settings.telegram_bot_token and not settings.telegram_webhook_url:
-        tarefa_telegram = asyncio.create_task(telegram_bot.rodar_polling())
+        tarefas.append(asyncio.create_task(telegram_bot.rodar_polling()))
     yield
-    tarefa.cancel()
-    if tarefa_telegram is not None:
-        tarefa_telegram.cancel()
+    for tarefa in tarefas:
+        tarefa.cancel()
     estados.limpar_todos()
     await engine.dispose()
 
@@ -46,4 +47,5 @@ app.include_router(produtos.router)
 
 @app.get("/health", tags=["infra"])
 async def health():
-    return {"status": "ok"}
+    # versao: tag da imagem em homologação (APP_VERSAO); o deploy confere qual versão está no ar (SCRUM-51)
+    return {"status": "ok", "versao": settings.app_versao}

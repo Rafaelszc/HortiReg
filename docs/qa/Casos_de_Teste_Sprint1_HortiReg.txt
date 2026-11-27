@@ -3,7 +3,8 @@
 ================================================================================
 Projeto: HortiReg (SGV-WA) – Vendas e logística de hortifrúti via WhatsApp
 QA Responsável (R2): Rafael | Versão: 1.2 · Data: 12/11/2026
-Base: Plano de Teste v1.2 (Alinhado ao CI run 43144352377 com 75/75 testes passando)
+Base: Plano de Teste v1.1 (retrato de 12/11/2026, CI run 43144352377 com 75/75 testes passando)
+Matriz vigente (atualizada em 25/11, regressão final 84/84): docs/qa/casos-de-teste.md
 
 --------------------------------------------------------------------------------
 1. CASOS DE TESTE AUTOMATIZADOS E PASSANDO NO CI (SPRINTS 1 E 2)

@@ -56,7 +56,7 @@ Funcionalidade: Pedido por texto com resumo estruturado (US-05)
     E que a IA está fora do ar
     Quando o cliente envia "quero 2 kg de tomate"
     Então nenhum pedido é criado
-    E o cliente é avisado que o pedido não pôde ser lido agora
+    E o cliente é avisado que o pedido está em processamento
 
   @regressao @excecao
   Cenário: IA demora mais que o limite de espera no pedido por texto
@@ -64,4 +64,4 @@ Funcionalidade: Pedido por texto com resumo estruturado (US-05)
     E que a IA demora mais que o limite de espera
     Quando o cliente envia "quero 2 kg de tomate"
     Então nenhum pedido é criado
-    E o cliente é avisado que o pedido não pôde ser lido agora
+    E o cliente é avisado que o pedido está em processamento

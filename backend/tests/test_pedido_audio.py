@@ -6,13 +6,14 @@ from sqlalchemy import func, select
 from app.config import settings
 from app.models import Pedido, Produto, StatusPedido
 from app.routers.webhook import MSG_OPCOES
+from app.services import fila
 from tests.conftest import TELEFONE, itens_do_texto, mensagem_audio, rodar
 
 scenarios("features/pedido_audio.feature")
 
 
 @given("um catálogo ativo com tomate e macaxeira", target_fixture="ctx")
-def _catalogo(client, whatsapp_fake, llm_fake, audio_fake):
+def _catalogo(cliente_com_endereco, client, whatsapp_fake, llm_fake, audio_fake):
     async def _criar(session):
         session.add_all(
             [
@@ -115,6 +116,11 @@ def _nao_baixou(ctx):
 @then("a IA não é chamada")
 def _ia_nao_chamada(ctx):
     assert ctx["llm"]["chamadas"] == 0
+
+
+@then("o cliente é avisado que o pedido está em processamento")
+def _em_processamento(ctx):
+    assert ctx["enviadas"] == [(TELEFONE, fila.MSG_EM_PROCESSAMENTO)]  # nunca silêncio nem duplicada
 
 
 @then("o cliente é orientado a reenviar em áudio mais curto ou em texto")

@@ -20,7 +20,7 @@ from app.database import Base
 from app.main import app
 from app.models import Admin, Produto
 from app.schemas.pedido import ItemExtraido, PedidoExtraido
-from app.services import llm, security, telegram, whatsapp
+from app.services import estados, llm, security, telegram, whatsapp
 
 LOGIN = "admin"
 SENHA = "senha-de-teste-123"
@@ -61,6 +61,7 @@ def banco_limpo(schema):
         await session.commit()
 
     rodar(_limpar)
+    estados.limpar_todos()
 
 
 @pytest.fixture

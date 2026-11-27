@@ -1,8 +1,13 @@
+import logging
+import time
+
 from google import genai
-from google.genai import types
+from google.genai import errors, types
 
 from app.config import settings
 from app.schemas.pedido import PedidoExtraido
+
+log = logging.getLogger("sgv.llm")
 
 PROMPT = """Você interpreta pedidos de hortifrúti enviados por clientes no WhatsApp, em português
 do Brasil, incluindo gírias e expressões regionais (ex: "meia dúzia", "um quilo e meio",
@@ -34,13 +39,37 @@ async def extrair_pedido(
     if audio:
         partes.append(types.Part.from_bytes(data=audio, mime_type=audio_mime))
 
-    resposta = await _get_client().aio.models.generate_content(
-        model=settings.gemini_model,
-        contents=partes,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=PedidoExtraido,
-            temperature=0,
-        ),
-    )
-    return resposta.parsed or PedidoExtraido()
+    modelos = [settings.gemini_model]
+    if settings.gemini_fallback_model and settings.gemini_fallback_model != settings.gemini_model:
+        modelos.append(settings.gemini_fallback_model)
+
+    ultimo_erro: Exception | None = None
+    for idx, modelo in enumerate(modelos):
+        inicio = time.perf_counter()
+        try:
+            resposta = await _get_client().aio.models.generate_content(
+                model=modelo,
+                contents=partes,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=PedidoExtraido,
+                    temperature=0,
+                ),
+            )
+            duracao_ms = (time.perf_counter() - inicio) * 1000
+            log.info("Gemini (%s) respondeu em %.0fms", modelo, duracao_ms)
+            return resposta.parsed or PedidoExtraido()
+        except errors.APIError as exc:
+            duracao_ms = (time.perf_counter() - inicio) * 1000
+            ultimo_erro = exc
+            tem_fallback = idx + 1 < len(modelos)
+            log.warning(
+                "Gemini (%s) falhou em %.0fms (status=%s)%s",
+                modelo,
+                duracao_ms,
+                exc.code,
+                f"; tentando fallback {modelos[idx + 1]}" if tem_fallback else "",
+            )
+            if not tem_fallback:
+                raise
+    raise ultimo_erro  # pragma: no cover

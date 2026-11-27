@@ -136,6 +136,7 @@ def test_pedido_pendente_resposta_invalida_e_cancelamento(client, catalogo, tele
     llm_fake["responder"](("tomate", 1, "kg"))
     client.post("/webhook/telegram", json=_update_texto("1 kg de tomate"))
 
+    llm_fake["responder"]()
     client.post("/webhook/telegram", json=_update_texto("qualquer coisa"))
     assert "Não entendi" in telegram_fake["enviadas"][-1][1]
     assert _ultimo_pedido().status == StatusPedido.AGUARDANDO_CONFIRMACAO
@@ -143,6 +144,32 @@ def test_pedido_pendente_resposta_invalida_e_cancelamento(client, catalogo, tele
     client.post("/webhook/telegram", json=_update_texto("3"))
     assert _ultimo_pedido().status == StatusPedido.CANCELADO
     assert "cancelado" in telegram_fake["enviadas"][-1][1].lower()
+
+
+def test_pedido_pendente_adiciona_itens_por_texto_e_audio(client, catalogo, telegram_fake, llm_fake):
+    llm_fake["responder"](("tomate", 2, "kg"))
+    client.post("/webhook/telegram", json=_update_texto("quero 2 kg de tomate"))
+    pedido_id = _ultimo_pedido().id
+
+    # Envia mais itens por texto no estado AGUARDANDO_CONFIRMACAO (um novo + soma no existente)
+    llm_fake["responder"](("tomate", 1, "kg"), ("banana", 1, "caixa"))
+    client.post("/webhook/telegram", json=_update_texto("esqueci, bota mais 1 kg de tomate e 1 caixa de banana"))
+
+    assert _total_pedidos() == 1
+    pedido = _ultimo_pedido()
+    assert pedido.id == pedido_id
+    assert pedido.status == StatusPedido.AGUARDANDO_CONFIRMACAO
+    itens_map = {i.nome: float(i.quantidade) for i in pedido.itens}
+    assert itens_map == {"tomate": 3.0, "banana": 1.0}
+    assert "Adicionei ao seu pedido" in telegram_fake["enviadas"][-1][1]
+
+    # Envia mais itens por áudio no estado AGUARDANDO_CONFIRMACAO
+    llm_fake["responder"](("coentro", 2, "maço"))
+    client.post("/webhook/telegram", json=_update_voz(duracao=10, mime_type="audio/ogg"))
+
+    assert _total_pedidos() == 1
+    itens_map = {i.nome: float(i.quantidade) for i in _ultimo_pedido().itens}
+    assert itens_map == {"tomate": 3.0, "banana": 1.0, "coentro": 2.0}
 
 
 def test_pedido_sem_pendente_e_falha_ia(client, telegram_fake, llm_fake):
@@ -228,6 +255,7 @@ def test_polling_processa_updates_e_avanca_offset(monkeypatch):
         offsets.append(offset)
         if offset is None:
             return [{"update_id": 50, "message": {"text": "/start"}}]
+        await asyncio.sleep(0)
         raise asyncio.CancelledError
 
     async def _processar(update):
@@ -243,3 +271,76 @@ def test_polling_processa_updates_e_avanca_offset(monkeypatch):
     assert offsets == [None, 51]
     assert len(processados) == 1
     assert processados[0]["update_id"] == 50
+
+
+def test_fluxo_estados_editar_e_gerenciar_confirmado(client, catalogo, telegram_fake, llm_fake):
+    from app.services import estados
+    from app.services.estados import EstadoConversa
+
+    assert estados.obter_estado(CHAT_ID) == EstadoConversa.ESPERANDO
+
+    # Clica em "Fazer pedido" -> FAZENDO_PEDIDO
+    client.post("/webhook/telegram", json=_update_callback("novo_pedido", callback_id="cb-novo"))
+    assert estados.obter_estado(CHAT_ID) == EstadoConversa.FAZENDO_PEDIDO
+
+    # Envia pedido -> AGUARDANDO_CONFIRMACAO
+    llm_fake["responder"](("tomate", 2, "kg"))
+    client.post("/webhook/telegram", json=_update_texto("quero 2 kg de tomate"))
+    assert estados.obter_estado(CHAT_ID) == EstadoConversa.AGUARDANDO_CONFIRMACAO
+    pedido_id = _ultimo_pedido().id
+
+    # Clica em Editar -> EDITANDO
+    client.post("/webhook/telegram", json=_update_callback("corrigir", callback_id="cb-edit"))
+    assert estados.obter_estado(CHAT_ID) == EstadoConversa.EDITANDO
+
+    # Envia itens atualizados -> atualiza o mesmo pedido e volta para AGUARDANDO_CONFIRMACAO
+    llm_fake["responder"](("banana", 3, "caixa"))
+    client.post("/webhook/telegram", json=_update_texto("na verdade quero 3 caixas de banana"))
+    assert estados.obter_estado(CHAT_ID) == EstadoConversa.AGUARDANDO_CONFIRMACAO
+    assert _total_pedidos() == 1
+    atualizado = _ultimo_pedido()
+    assert atualizado.id == pedido_id
+    assert atualizado.itens[0].nome == "banana"
+
+    # Confirma -> PEDIDO_CONFIRMADO
+    client.post("/webhook/telegram", json=_update_callback("confirmar", callback_id="cb-conf"))
+    assert estados.obter_estado(CHAT_ID) == EstadoConversa.PEDIDO_CONFIRMADO
+    assert _ultimo_pedido().status == StatusPedido.CONFIRMADO
+
+    # Edita pedido confirmado e cancela edição -> volta para PEDIDO_CONFIRMADO
+    client.post("/webhook/telegram", json=_update_callback("editar_pedido", callback_id="cb-edit2"))
+    assert estados.obter_estado(CHAT_ID) == EstadoConversa.EDITANDO
+    client.post("/webhook/telegram", json=_update_callback("cancelar_edicao", callback_id="cb-cancel-edit"))
+    assert estados.obter_estado(CHAT_ID) == EstadoConversa.PEDIDO_CONFIRMADO
+
+    # Cancela pedido confirmado -> volta para ESPERANDO
+    client.post("/webhook/telegram", json=_update_callback("cancelar_pedido", callback_id="cb-cancel-conf"))
+    assert estados.obter_estado(CHAT_ID) == EstadoConversa.ESPERANDO
+    assert _ultimo_pedido().status == StatusPedido.CANCELADO
+
+
+def test_timer_inatividade_expira_sessao_e_volta_para_esperando():
+    import asyncio
+
+    from app.services import estados
+    from app.services.estados import EstadoConversa
+
+    expirados: list[tuple[int, int | None]] = []
+
+    async def _on_timeout(chat_id: int, pedido_id: int | None) -> None:
+        expirados.append((chat_id, pedido_id))
+
+    async def _rodar():
+        estados.definir(
+            CHAT_ID,
+            EstadoConversa.AGUARDANDO_CONFIRMACAO,
+            pedido_id=42,
+            on_timeout=_on_timeout,
+            timeout_segundos=0.05,
+        )
+        assert estados.obter_estado(CHAT_ID) == EstadoConversa.AGUARDANDO_CONFIRMACAO
+        await asyncio.sleep(0.12)
+        assert estados.obter_estado(CHAT_ID) == EstadoConversa.ESPERANDO
+        assert expirados == [(CHAT_ID, 42)]
+
+    asyncio.run(_rodar())

@@ -9,9 +9,12 @@ from app import models  # noqa: F401  (registra as tabelas no metadata)
 from app.config import settings
 from app.database import Base, engine
 from app.routers import auth, pedidos, produtos, telegram, webhook
-from app.services import expiracao, telegram_bot
+from app.services import estados, expiracao, telegram_bot
 
 logging.basicConfig(level=logging.INFO)
+# Evita spam de getUpdates nos logs e impede exposição do token do bot na URL do Telegram.
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
 @asynccontextmanager
@@ -29,6 +32,7 @@ async def lifespan(app: FastAPI):
     tarefa.cancel()
     if tarefa_telegram is not None:
         tarefa_telegram.cancel()
+    estados.limpar_todos()
     await engine.dispose()
 
 

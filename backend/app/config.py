@@ -21,11 +21,13 @@ class Settings(BaseSettings):
     telegram_webhook_secret: str = ""
     telegram_webhook_url: str = ""
     telegram_polling: bool = False
+    telegram_estado_timeout_segundos: int = 300
     telegram_api_url: str = "https://api.telegram.org"
 
     # Gemini
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.5-flash-lite"
+    gemini_fallback_model: str = "gemini-3.8-flash"
 
     # Pedido por áudio (US-06): limite de duração, tamanho do arquivo e espera pela IA
     audio_max_segundos: int = 60

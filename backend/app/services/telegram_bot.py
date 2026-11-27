@@ -1,4 +1,4 @@
-"""Lógica de atendimento de pedidos via Telegram (HortiReg / @HortRegBot)."""
+"""Lógica de atendimento de pedidos via Telegram (HortiReg / @HortRegBot) com máquina de estados."""
 
 import asyncio
 import logging
@@ -11,35 +11,67 @@ from app.config import settings
 from app.database import SessionLocal
 from app.models import Cliente, ItemPedido, MensagemProcessada, Pedido, StatusPedido
 from app.schemas.pedido import PedidoExtraido
-from app.services import audio, catalogo, expiracao, llm, telegram
+from app.services import audio, catalogo, estados, expiracao, llm, telegram
+from app.services.estados import EstadoConversa
 
 log = logging.getLogger("sgv.telegram")
 
-# Resposta ao resumo do pedido (US-08): 1-Confirmar, 2-Corrigir, 3-Cancelar
+# Resposta ao resumo do pedido (US-08): 1-Confirmar, 2-Editar/Corrigir, 3-Cancelar
 OPCOES = {
     **dict.fromkeys(("1", "sim", "s", "confirmo", "confirmar", "ok", "isso"), "confirmar"),
-    **dict.fromkeys(("2", "corrigir"), "corrigir"),
+    **dict.fromkeys(("2", "corrigir", "editar"), "corrigir"),
     **dict.fromkeys(("3", "nao", "não", "n", "cancelar", "cancela"), "cancelar"),
+}
+TECLADO_MENU = {
+    "inline_keyboard": [
+        [{"text": "🛒 Fazer pedido", "callback_data": "novo_pedido"}],
+    ]
 }
 TECLADO_OPCOES = {
     "inline_keyboard": [
         [
             {"text": "✅ Confirmar", "callback_data": "confirmar"},
-            {"text": "✏️ Corrigir", "callback_data": "corrigir"},
+            {"text": "✏️ Editar", "callback_data": "corrigir"},
             {"text": "❌ Cancelar", "callback_data": "cancelar"},
         ]
     ]
 }
-MSG_OPCOES = "Responda 1 para confirmar, 2 para corrigir ou 3 para cancelar (ou use os botões abaixo)."
+TECLADO_CONFIRMADO = {
+    "inline_keyboard": [
+        [
+            {"text": "✏️ Editar pedido", "callback_data": "editar_pedido"},
+            {"text": "❌ Cancelar pedido", "callback_data": "cancelar_pedido"},
+        ],
+        [{"text": "🛒 Novo pedido", "callback_data": "novo_pedido"}],
+    ]
+}
+TECLADO_EDITANDO = {
+    "inline_keyboard": [
+        [{"text": "↩️ Cancelar edição", "callback_data": "cancelar_edicao"}],
+    ]
+}
+
+MSG_OPCOES = (
+    "Responda 1 para confirmar, 2 para editar ou 3 para cancelar "
+    "(ou envie mais itens por texto ou áudio para adicionar ao pedido)."
+)
 EXEMPLO = 'Exemplo: "quero 2 kg de tomate e 1 caixa de banana".'
 MSG_BOAS_VINDAS = (
     "Olá! Bem-vindo ao {nome} (@{username}) 🥬🍅\n"
     "Envie seu pedido por texto ou áudio que eu monto o resumo para você confirmar.\n"
     + EXEMPLO
 )
+MSG_PEDIR_ITENS = f"Pode enviar os itens do seu pedido por texto ou áudio! 🛒\n{EXEMPLO}"
+MSG_PEDIR_EDICAO = (
+    "✏️ Editando o pedido #{id}. Envie os itens corretos (por texto ou áudio) para atualizar o resumo.\n" + EXEMPLO
+)
 MSG_JA_EXPIROU = (
     "O pedido #{id} expirou e não pode mais ser confirmado. "
     "Quer refazer? É só mandar o pedido de novo, por texto ou áudio."
+)
+MSG_TEMPO_ESGOTADO = (
+    "⏰ O tempo para responder ao pedido #{id} expirou (5 minutos sem resposta). "
+    "Voltei para o início — quando quiser, é só fazer um novo pedido!"
 )
 MSG_SEM_ITENS = f"Não consegui entender os itens do pedido. Pode repetir? 🙏\n{EXEMPLO}"
 MSG_AUDIO_LONGO = (
@@ -60,9 +92,11 @@ MSG_AUDIO_FALHA = (
     + EXEMPLO
 )
 
+_tarefas_ativas: set[asyncio.Task] = set()
+
 
 async def processar_update(update: dict) -> None:
-    """Processa um update recebido pelo webhook do Telegram."""
+    """Processa um update recebido pelo webhook ou long polling do Telegram."""
     try:
         update_id = update.get("update_id")
         if "callback_query" in update:
@@ -78,7 +112,7 @@ async def processar_update(update: dict) -> None:
 
 
 async def rodar_polling() -> None:
-    """Loop de long polling (getUpdates) para receber mensagens do Telegram sem webhook público."""
+    """Loop de long polling (getUpdates) com despacho concorrente de updates."""
     try:
         await telegram.remover_webhook()
     except Exception:
@@ -92,13 +126,36 @@ async def rodar_polling() -> None:
             for update in updates:
                 if "update_id" in update:
                     offset = update["update_id"] + 1
-                await processar_update(update)
+                tarefa = asyncio.create_task(processar_update(update))
+                _tarefas_ativas.add(tarefa)
+                tarefa.add_done_callback(_tarefas_ativas.discard)
         except asyncio.CancelledError:
             log.info("Long polling do Telegram encerrado")
             raise
         except Exception:
             log.exception("Erro no long polling do Telegram; tentando novamente em 5s")
             await asyncio.sleep(5)
+
+
+async def _ao_expirar_sessao(chat_id: int, pedido_id: int | None) -> None:
+    """Callback disparado após 5 min de inatividade em AGUARDANDO_CONFIRMACAO ou EDITANDO."""
+    if pedido_id is not None:
+        async with SessionLocal() as session:
+            pedido = await session.get(Pedido, pedido_id)
+            if pedido is not None and pedido.status == StatusPedido.AGUARDANDO_CONFIRMACAO:
+                pedido.status = StatusPedido.EXPIRADO
+                await session.commit()
+        await telegram.enviar_texto(
+            chat_id,
+            MSG_TEMPO_ESGOTADO.format(id=pedido_id),
+            reply_markup=TECLADO_MENU,
+        )
+    else:
+        await telegram.enviar_texto(
+            chat_id,
+            "⏰ Tempo esgotado por inatividade. Voltei para o início!",
+            reply_markup=TECLADO_MENU,
+        )
 
 
 async def _processar_callback(callback: dict, update_id: int | None) -> None:
@@ -112,16 +169,34 @@ async def _processar_callback(callback: dict, update_id: int | None) -> None:
     if callback_id:
         await telegram.responder_callback(callback_id)
 
-    opcao = OPCOES.get((callback.get("data") or "").strip().lower())
-    if not opcao:
+    acao = (callback.get("data") or "").strip().lower()
+    if not acao:
         return
 
     async with SessionLocal() as session:
         if await _repetida(session, update_id):
             log.info("Update %s do Telegram já processado; ignorado", update_id)
             return
+
         cliente = await _obter_cliente(session, chat_id, _nome_usuario(callback.get("from")))
         await expiracao.expirar_pendentes(session)
+
+        if acao == "novo_pedido":
+            estados.definir(chat_id, EstadoConversa.FAZENDO_PEDIDO)
+            await telegram.enviar_texto(chat_id, MSG_PEDIR_ITENS)
+            return
+
+        if acao == "cancelar_edicao":
+            await _cancelar_edicao(session, chat_id)
+            return
+
+        if acao in ("editar_pedido", "cancelar_pedido"):
+            await _gerenciar_confirmado(session, cliente, chat_id, acao)
+            return
+
+        opcao = OPCOES.get(acao)
+        if not opcao:
+            return
         pendente = await _pedido_pendente(session, cliente)
         await _tratar_resposta(session, cliente, chat_id, pendente, opcao)
 
@@ -144,54 +219,297 @@ async def _processar_mensagem(message: dict, update_id: int | None) -> None:
             log.info("Update %s do Telegram já processado; ignorado", update_id)
             return
 
-        if texto and texto.split()[0].lower().split("@")[0] in ("/start", "/ajuda", "/help"):
+        comando = texto.split()[0].lower().split("@")[0] if texto else ""
+        if comando in ("/start", "/ajuda", "/help"):
+            estados.resetar(chat_id)
             await telegram.enviar_texto(
                 chat_id,
                 MSG_BOAS_VINDAS.format(nome=settings.telegram_bot_name, username=settings.telegram_bot_username),
+                reply_markup=TECLADO_MENU,
             )
             return
 
-        cliente = await _obter_cliente(session, chat_id, _nome_usuario(remetente))
+        if comando == "/pedido":
+            estados.definir(chat_id, EstadoConversa.FAZENDO_PEDIDO)
+            await telegram.enviar_texto(chat_id, MSG_PEDIR_ITENS)
+            return
 
-        # Etapa 2: com pedido pendente, só 1, 2 ou 3 valem; nada vira pedido novo
+        cliente = await _obter_cliente(session, chat_id, _nome_usuario(remetente))
         await expiracao.expirar_pendentes(session)
+        sessao = estados.obter(chat_id)
+
+        # Estado EDITANDO: cliente envia os novos itens para atualizar o pedido em edição
+        if sessao.estado == EstadoConversa.EDITANDO:
+            await _processar_edicao(session, cliente, chat_id, update_id, texto, midia, sessao.pedido_id)
+            return
+
+        # Estado PEDIDO_CONFIRMADO: aceita editar/cancelar por texto ou iniciar novo pedido
+        if sessao.estado == EstadoConversa.PEDIDO_CONFIRMADO and texto:
+            escolha = OPCOES.get(texto.lower())
+            if escolha == "corrigir":
+                await _gerenciar_confirmado(session, cliente, chat_id, "editar_pedido")
+                return
+            if escolha == "cancelar":
+                await _gerenciar_confirmado(session, cliente, chat_id, "cancelar_pedido")
+                return
+
+        # Etapa 2 (AGUARDANDO_CONFIRMACAO ou pedido pendente no banco):
+        # 1/2/3 confirmam/editam/cancelam; outro texto ou áudio adiciona itens ao pedido pendente.
         opcao = OPCOES.get(texto.lower()) if texto else None
         pendente = await _pedido_pendente(session, cliente)
-        if opcao or pendente:
-            await _tratar_resposta(session, cliente, chat_id, pendente, opcao)
+        if pendente is not None:
+            if opcao is not None:
+                await _tratar_resposta(session, cliente, chat_id, pendente, opcao)
+            else:
+                await _adicionar_ao_pedido(session, chat_id, update_id, pendente, texto, midia)
+            return
+        if opcao is not None:
+            await _tratar_resposta(session, cliente, chat_id, None, opcao)
             return
 
-        # Etapa 1: interpretar o pedido
-        msg_sem_itens = MSG_SEM_ITENS
-        if midia:
-            pedido_extraido = await _extrair_do_audio(chat_id, update_id, midia)
-            if pedido_extraido is None:
-                return
-            msg_sem_itens = MSG_AUDIO_INCOMPREENDIDO
-        elif texto:
-            pedido_extraido = await _extrair_do_texto(chat_id, update_id, texto)
-            if pedido_extraido is None:
-                return
+        # Etapa 1 (ESPERANDO ou FAZENDO_PEDIDO): interpretar novo pedido
+        await _criar_novo_pedido(session, cliente, chat_id, update_id, texto, midia)
+
+
+async def _criar_novo_pedido(
+    session: AsyncSession,
+    cliente: Cliente,
+    chat_id: int,
+    update_id: int | None,
+    texto: str,
+    midia: dict | None,
+) -> None:
+    estados.definir(chat_id, EstadoConversa.FAZENDO_PEDIDO)
+    pedido_extraido, msg_sem_itens = await _extrair_itens(chat_id, update_id, texto, midia)
+    if pedido_extraido is None:
+        return
+
+    if not pedido_extraido.itens:
+        await telegram.enviar_texto(chat_id, msg_sem_itens)
+        return
+
+    pedido = Pedido(
+        cliente_id=cliente.id,
+        observacao=pedido_extraido.observacao,
+        itens=await catalogo.montar_itens(session, pedido_extraido.itens),
+    )
+    session.add(pedido)
+    await session.commit()
+
+    estados.definir(
+        chat_id,
+        EstadoConversa.AGUARDANDO_CONFIRMACAO,
+        pedido_id=pedido.id,
+        on_timeout=_ao_expirar_sessao,
+    )
+    await telegram.enviar_texto(
+        chat_id,
+        f"Entendi seu pedido #{pedido.id}:\n{_resumo(pedido.itens)}\n\n{MSG_OPCOES}",
+        reply_markup=TECLADO_OPCOES,
+    )
+
+
+def _mesclar_itens(atuais: list[ItemPedido], novos: list[ItemPedido]) -> None:
+    """Adiciona novos itens ao pedido; se nome e unidade já existirem, soma a quantidade."""
+    por_chave = {(i.nome.strip().lower(), i.unidade.strip().lower()): i for i in atuais}
+    for novo in novos:
+        chave = (novo.nome.strip().lower(), novo.unidade.strip().lower())
+        existente = por_chave.get(chave)
+        if existente is not None:
+            existente.quantidade += novo.quantidade
         else:
-            return
+            atuais.append(novo)
+            por_chave[chave] = novo
 
-        if not pedido_extraido.itens:
-            await telegram.enviar_texto(chat_id, msg_sem_itens)
-            return
 
-        pedido = Pedido(
-            cliente_id=cliente.id,
-            observacao=pedido_extraido.observacao,
-            itens=await catalogo.montar_itens(session, pedido_extraido.itens),
+async def _adicionar_ao_pedido(
+    session: AsyncSession,
+    chat_id: int,
+    update_id: int | None,
+    pedido: Pedido,
+    texto: str,
+    midia: dict | None,
+) -> None:
+    """Extrai novos itens (texto ou áudio) e os adiciona ao pedido em AGUARDANDO_CONFIRMACAO."""
+    pedido_extraido, _ = await _extrair_itens(chat_id, update_id, texto, midia)
+    if pedido_extraido is None:
+        estados.definir(
+            chat_id,
+            EstadoConversa.AGUARDANDO_CONFIRMACAO,
+            pedido_id=pedido.id,
+            on_timeout=_ao_expirar_sessao,
         )
-        session.add(pedido)
-        await session.commit()
+        return
 
+    if not pedido_extraido.itens:
+        estados.definir(
+            chat_id,
+            EstadoConversa.AGUARDANDO_CONFIRMACAO,
+            pedido_id=pedido.id,
+            on_timeout=_ao_expirar_sessao,
+        )
         await telegram.enviar_texto(
             chat_id,
-            f"Entendi seu pedido #{pedido.id}:\n{_resumo(pedido.itens)}\n\n{MSG_OPCOES}",
+            f"Não entendi sua resposta sobre o pedido #{pedido.id}. {MSG_OPCOES}",
             reply_markup=TECLADO_OPCOES,
         )
+        return
+
+    novos_itens = await catalogo.montar_itens(session, pedido_extraido.itens)
+    _mesclar_itens(pedido.itens, novos_itens)
+    if pedido_extraido.observacao:
+        if pedido.observacao:
+            pedido.observacao = f"{pedido.observacao}; {pedido_extraido.observacao}"[:500]
+        else:
+            pedido.observacao = pedido_extraido.observacao
+    await session.commit()
+
+    estados.definir(
+        chat_id,
+        EstadoConversa.AGUARDANDO_CONFIRMACAO,
+        pedido_id=pedido.id,
+        on_timeout=_ao_expirar_sessao,
+    )
+    await telegram.enviar_texto(
+        chat_id,
+        f"Adicionei ao seu pedido #{pedido.id}:\n{_resumo(pedido.itens)}\n\n{MSG_OPCOES}",
+        reply_markup=TECLADO_OPCOES,
+    )
+
+
+async def _processar_edicao(
+    session: AsyncSession,
+    cliente: Cliente,
+    chat_id: int,
+    update_id: int | None,
+    texto: str,
+    midia: dict | None,
+    pedido_id: int | None,
+) -> None:
+    pedido = await session.get(Pedido, pedido_id) if pedido_id is not None else None
+    if pedido is None or pedido.cliente_id != cliente.id or pedido.status not in (
+        StatusPedido.AGUARDANDO_CONFIRMACAO,
+        StatusPedido.CONFIRMADO,
+    ):
+        estados.resetar(chat_id)
+        await telegram.enviar_texto(
+            chat_id,
+            "Esse pedido não está mais disponível para edição.",
+            reply_markup=TECLADO_MENU,
+        )
+        return
+
+    pedido_extraido, msg_sem_itens = await _extrair_itens(chat_id, update_id, texto, midia)
+    if pedido_extraido is None:
+        return
+
+    if not pedido_extraido.itens:
+        estados.definir(chat_id, EstadoConversa.EDITANDO, pedido_id=pedido.id, on_timeout=_ao_expirar_sessao)
+        await telegram.enviar_texto(chat_id, msg_sem_itens, reply_markup=TECLADO_EDITANDO)
+        return
+
+    pedido.observacao = pedido_extraido.observacao
+    pedido.itens = await catalogo.montar_itens(session, pedido_extraido.itens)
+    pedido.status = StatusPedido.AGUARDANDO_CONFIRMACAO
+    await session.commit()
+
+    estados.definir(
+        chat_id,
+        EstadoConversa.AGUARDANDO_CONFIRMACAO,
+        pedido_id=pedido.id,
+        on_timeout=_ao_expirar_sessao,
+    )
+    await telegram.enviar_texto(
+        chat_id,
+        f"Atualizei seu pedido #{pedido.id}:\n{_resumo(pedido.itens)}\n\n{MSG_OPCOES}",
+        reply_markup=TECLADO_OPCOES,
+    )
+
+
+async def _cancelar_edicao(session: AsyncSession, chat_id: int) -> None:
+    sessao = estados.obter(chat_id)
+    pedido = await session.get(Pedido, sessao.pedido_id) if sessao.pedido_id is not None else None
+    if pedido is not None and pedido.status == StatusPedido.AGUARDANDO_CONFIRMACAO:
+        estados.definir(
+            chat_id,
+            EstadoConversa.AGUARDANDO_CONFIRMACAO,
+            pedido_id=pedido.id,
+            on_timeout=_ao_expirar_sessao,
+        )
+        await telegram.enviar_texto(
+            chat_id,
+            f"Edição cancelada. Seu pedido #{pedido.id} continua assim:\n{_resumo(pedido.itens)}\n\n{MSG_OPCOES}",
+            reply_markup=TECLADO_OPCOES,
+        )
+        return
+
+    if pedido is not None and pedido.status == StatusPedido.CONFIRMADO:
+        estados.definir(chat_id, EstadoConversa.PEDIDO_CONFIRMADO, pedido_id=pedido.id)
+        await telegram.enviar_texto(
+            chat_id,
+            f"Edição cancelada. Seu pedido #{pedido.id} continua confirmado.",
+            reply_markup=TECLADO_CONFIRMADO,
+        )
+        return
+
+    estados.resetar(chat_id)
+    await telegram.enviar_texto(chat_id, "Edição cancelada.", reply_markup=TECLADO_MENU)
+
+
+async def _gerenciar_confirmado(
+    session: AsyncSession,
+    cliente: Cliente,
+    chat_id: int,
+    acao: str,
+) -> None:
+    sessao = estados.obter(chat_id)
+    pedido = await session.get(Pedido, sessao.pedido_id) if sessao.pedido_id is not None else None
+    if pedido is None or pedido.cliente_id != cliente.id or pedido.status != StatusPedido.CONFIRMADO:
+        pedido = await session.scalar(
+            select(Pedido)
+            .where(Pedido.cliente_id == cliente.id, Pedido.status == StatusPedido.CONFIRMADO)
+            .order_by(Pedido.id.desc())
+        )
+
+    if pedido is None:
+        estados.resetar(chat_id)
+        await telegram.enviar_texto(
+            chat_id,
+            "Você não tem nenhum pedido confirmado ativo para alterar.",
+            reply_markup=TECLADO_MENU,
+        )
+        return
+
+    if acao == "editar_pedido":
+        estados.definir(chat_id, EstadoConversa.EDITANDO, pedido_id=pedido.id, on_timeout=_ao_expirar_sessao)
+        await telegram.enviar_texto(
+            chat_id,
+            MSG_PEDIR_EDICAO.format(id=pedido.id),
+            reply_markup=TECLADO_EDITANDO,
+        )
+        return
+
+    pedido.status = StatusPedido.CANCELADO
+    await session.commit()
+    estados.resetar(chat_id)
+    await telegram.enviar_texto(
+        chat_id,
+        f"❌ Pedido #{pedido.id} cancelado.",
+        reply_markup=TECLADO_MENU,
+    )
+
+
+async def _extrair_itens(
+    chat_id: int,
+    update_id: int | None,
+    texto: str,
+    midia: dict | None,
+) -> tuple[PedidoExtraido | None, str]:
+    if midia:
+        return await _extrair_do_audio(chat_id, update_id, midia), MSG_AUDIO_INCOMPREENDIDO
+    if texto:
+        return await _extrair_do_texto(chat_id, update_id, texto), MSG_SEM_ITENS
+    return None, MSG_SEM_ITENS
 
 
 async def _extrair_do_texto(chat_id: int, update_id: int | None, texto: str) -> PedidoExtraido | None:
@@ -298,7 +616,7 @@ async def _pedido_pendente(session: AsyncSession, cliente: Cliente) -> Pedido | 
 async def _tratar_resposta(
     session: AsyncSession,
     cliente: Cliente,
-    chat_id: int | str,
+    chat_id: int,
     pedido: Pedido | None,
     opcao: str | None,
 ) -> None:
@@ -306,14 +624,25 @@ async def _tratar_resposta(
         ultimo = await session.scalar(
             select(Pedido).where(Pedido.cliente_id == cliente.id).order_by(Pedido.id.desc())
         )
+        estados.resetar(chat_id)
         if opcao == "confirmar" and ultimo is not None and ultimo.status == StatusPedido.EXPIRADO:
-            await telegram.enviar_texto(chat_id, MSG_JA_EXPIROU.format(id=ultimo.id))
+            await telegram.enviar_texto(chat_id, MSG_JA_EXPIROU.format(id=ultimo.id), reply_markup=TECLADO_MENU)
             return
         log.warning("Cliente %s respondeu '%s' sem pedido aguardando confirmação", cliente.id, opcao)
-        await telegram.enviar_texto(chat_id, "Você não tem nenhum pedido aguardando confirmação.")
+        await telegram.enviar_texto(
+            chat_id,
+            "Você não tem nenhum pedido aguardando confirmação.",
+            reply_markup=TECLADO_MENU,
+        )
         return
 
     if opcao is None:
+        estados.definir(
+            chat_id,
+            EstadoConversa.AGUARDANDO_CONFIRMACAO,
+            pedido_id=pedido.id,
+            on_timeout=_ao_expirar_sessao,
+        )
         await telegram.enviar_texto(
             chat_id,
             f"Não entendi sua resposta sobre o pedido #{pedido.id}. {MSG_OPCOES}",
@@ -321,11 +650,31 @@ async def _tratar_resposta(
         )
         return
 
-    pedido.status = StatusPedido.CONFIRMADO if opcao == "confirmar" else StatusPedido.CANCELADO
+    if opcao == "corrigir":
+        estados.definir(chat_id, EstadoConversa.EDITANDO, pedido_id=pedido.id, on_timeout=_ao_expirar_sessao)
+        await telegram.enviar_texto(
+            chat_id,
+            MSG_PEDIR_EDICAO.format(id=pedido.id),
+            reply_markup=TECLADO_EDITANDO,
+        )
+        return
+
+    if opcao == "confirmar":
+        pedido.status = StatusPedido.CONFIRMADO
+        await session.commit()
+        estados.definir(chat_id, EstadoConversa.PEDIDO_CONFIRMADO, pedido_id=pedido.id)
+        await telegram.enviar_texto(
+            chat_id,
+            f"✅ Pedido #{pedido.id} confirmado! Avisaremos quando sair para entrega.",
+            reply_markup=TECLADO_CONFIRMADO,
+        )
+        return
+
+    pedido.status = StatusPedido.CANCELADO
     await session.commit()
-    resposta = {
-        "confirmar": f"✅ Pedido #{pedido.id} confirmado! Avisaremos quando sair para entrega.",
-        "corrigir": f"✏️ Pedido #{pedido.id} cancelado para correção. Envie o pedido completo do jeito certo.",
-        "cancelar": f"❌ Pedido #{pedido.id} cancelado.",
-    }[opcao]
-    await telegram.enviar_texto(chat_id, resposta)
+    estados.resetar(chat_id)
+    await telegram.enviar_texto(
+        chat_id,
+        f"❌ Pedido #{pedido.id} cancelado.",
+        reply_markup=TECLADO_MENU,
+    )
